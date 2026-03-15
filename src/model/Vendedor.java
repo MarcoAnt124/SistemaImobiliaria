@@ -6,4 +6,13 @@ public class Vendedor {
     private String senha;
 
     //TODO: Criar getters, setters e construtor
+
+
+    public String getNome() {
+        return nome;
+    }
+
+    public String getSenha() {
+        return senha;
+    }
 }

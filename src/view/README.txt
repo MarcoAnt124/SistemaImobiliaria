@@ -1,7 +1,7 @@
 Criar um laço de repetição que mantenha o menu em funcionamento até que o usuário
 escolha a opção "Sair"
 
-Com a utilização da classe "Scanner" para a entrada de dados do usuário
+Com a utilização da classe "Scanner" para a entrada de dados do usuário:
 
 Implemente uma mensagem de Boas Vindas e solicite ao usuário o ID(ou nome) do vendedor e a senha dele
 e chame um método que será implementado no package "service" que ira verificar a autenticidade das informações
