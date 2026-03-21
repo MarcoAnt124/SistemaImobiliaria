@@ -8,7 +8,7 @@ public class Apartamento {
     private int quantidadeDeQuartos;
     private int quantidadeDeBanheiros;
     private double valorDeVenda;
-    private int quantidadeDeVagasDeGaragem;
+    private double valorSinal;
 
     //TODO: Criar os getters e setter
 }

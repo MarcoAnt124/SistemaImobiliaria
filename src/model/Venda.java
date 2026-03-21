@@ -11,7 +11,7 @@ public class Venda {
 
     //TODO: Criar getters, setters, construtor e o método fecharNegocio()
     //OBS: Lembre-se que no método "fecharNegocio()" um desconto (entrada do usuário) deve ser
-    // aplicado ao "valorFinal", sendo no máximo de 10%
+    // aplicado ao "valorFinal"
 
 
 }
