@@ -10,30 +10,34 @@ public class AutenticacaoService {
     private DadosRepository dados;
     private Vendedor vendedorAtual;
 
-    public AutenticacaoService() {
-        this.dados = null;
+    public AutenticacaoService(DadosRepository repositorioAtual) {
+        this.dados = repositorioAtual;
         this.vendedorAtual = null;
     }
 
-    public void setVendedorAtual(Vendedor vendedor){
+    public Vendedor getVendedorAtual() {
+        return this.vendedorAtual;
+    }
+
+    public void setVendedorAtual(Vendedor vendedor) {
         this.vendedorAtual = vendedor;
     }
 
-    public Vendedor verificarID(int idVendedor) {
-        ArrayList<Vendedor> listVend = listVend = dados.listaVendedores();
+    public boolean verificarID(int idVendedor) {
+        ArrayList<Vendedor> listVend = dados.listaVendedores();
+        setVendedorAtual(null);
 
         for (Vendedor vendAtual : listVend) {
-            if (vendAtual.getIdVendedor() == idVendedor) setVendedorAtual(vendAtual);
+            if (vendAtual.getIdVendedor() == idVendedor) {
+                setVendedorAtual(vendAtual);
+                return true;
+            }
         }
-        return null;
+        return false;
     }
 
-    public boolean verificarADM(Vendedor vendedor){
-        if(vendedor == null) return false;
+    public boolean verificarADM(Vendedor vendedor) {
+        if (vendedor == null) return false;
         return vendedor.getIdVendedor() == 666;
-    }
-
-    public boolean verificarStatusDisponivel(Apartamento apt){
-        return apt.getStatus() == StatusApartamento.DISPONIVEL;
     }
 }
