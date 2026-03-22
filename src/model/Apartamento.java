@@ -14,5 +14,9 @@ public class Apartamento {
         this.status = statusNovo;
     }
 
+    public StatusApartamento getStatus(){
+        return this.status;
+    }
+
     //TODO: Criar os getters e setter
 }

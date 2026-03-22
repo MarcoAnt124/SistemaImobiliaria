@@ -1,4 +1,6 @@
 package service;
+import model.Apartamento;
+import model.StatusApartamento;
 import repository.DadosRepository;
 import model.Vendedor;
 
@@ -24,5 +26,9 @@ public class AutenticacaoService {
 
     public boolean verificarADM(Vendedor vendedor){
         return vendedor.getIdVendedor() == 666;
+    }
+
+    public boolean verificarStatusDisponivel(Apartamento apt){
+        return apt.
     }
 }
