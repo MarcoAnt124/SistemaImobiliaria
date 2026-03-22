@@ -1,6 +1,7 @@
 package model;
 
 import java.time.LocalDate;
+import valorDeVenda
 
 public class Venda {
     private Vendedor vendedor;
@@ -57,12 +58,16 @@ public class Venda {
         this.valorFinal = valorFinal;
     }
 
-    public void fecharNegocio(double percentualDesconto){
-        if(percentualDesconto <= 10 && percentualDesconto >= 0){
-            this.valorFinal = this.valorFinal - (this.valorFinal * (percentualDesconto / 100));
-        }else{
-            System.out.println("Desconto inválido! O valor deve ser entre 0% e 10%");
-        }
+    public void fecharNegocio(Vendedor vendedor, Apartamento apartamento, Cliente cliente, double percentualDesconto){
+        this.vendedor = vendedor;
+        this.apartamento = apartamento;
+        this.cliente = cliente;
+
+        double precoBase = apartamento.getValorDeVenda();
+
+        this.dataDaVenda = LocalDate.now(); //defini o horario da conta
+
+        this.valorFinal = precoBase - (precoBase * (percentualDesconto / 100)); //calcular o valor de desconto
     }
 
     //TODO: Criar getters, setters, construtor e o método fecharNegocio()
