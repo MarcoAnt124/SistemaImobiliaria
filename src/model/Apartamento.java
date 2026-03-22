@@ -10,5 +10,9 @@ public class Apartamento {
     private double valorDeVenda;
     private double valorSinal;
 
+    public void setStatus(StatusApartamento statusNovo){
+        this.status = statusNovo;
+    }
+
     //TODO: Criar os getters e setter
 }
