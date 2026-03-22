@@ -15,20 +15,27 @@ public class AutenticacaoService {
         this.vendedorAtual = null;
     }
 
+    public void setVendedorAtual(Vendedor vendedor){
+        this.vendedorAtual = vendedor;
+    }
+
     public Vendedor verificarID(int idVendedor) {
         ArrayList<Vendedor> listVend = listVend = dados.listaVendedores();
 
         for (Vendedor vendAtual : listVend) {
-            if (vendAtual.getIdVendedor() == idVendedor) return vendAtual;
+            if (vendAtual.getIdVendedor() == idVendedor) ;
         }
         return null;
     }
 
     public boolean verificarADM(Vendedor vendedor){
+        if(vendedor == null) return false;
         return vendedor.getIdVendedor() == 666;
     }
 
     public boolean verificarStatusDisponivel(Apartamento apt){
-        return apt.
+        return apt.getStatus() == StatusApartamento.DISPONIVEL;
     }
+
+
 }
