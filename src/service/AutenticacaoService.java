@@ -23,7 +23,7 @@ public class AutenticacaoService {
         ArrayList<Vendedor> listVend = listVend = dados.listaVendedores();
 
         for (Vendedor vendAtual : listVend) {
-            if (vendAtual.getIdVendedor() == idVendedor) ;
+            if (vendAtual.getIdVendedor() == idVendedor) setVendedorAtual(vendAtual);
         }
         return null;
     }
@@ -36,6 +36,4 @@ public class AutenticacaoService {
     public boolean verificarStatusDisponivel(Apartamento apt){
         return apt.getStatus() == StatusApartamento.DISPONIVEL;
     }
-
-
 }
