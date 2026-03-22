@@ -21,7 +21,7 @@ public class Apartamento {
     //TODO: Criar os getters e setter
 
 
-    public Apartamento(StatusApartamento status, int numero, int andar, double metragem, int quantidadeDeQuartos, int quantidadeDeBanheiros, double valorDeVenda, double valorSinal) {
+    public Apartamento(StatusApartamento status, int numero, int andar, double metragem, int quantidadeDeQuartos, int quantidadeDeBanheiros, double valorDeVenda) {
         this.status = status;
         this.numero = numero;
         this.andar = andar;
@@ -29,7 +29,7 @@ public class Apartamento {
         this.quantidadeDeQuartos = quantidadeDeQuartos;
         this.quantidadeDeBanheiros = quantidadeDeBanheiros;
         this.valorDeVenda = valorDeVenda;
-        this.valorSinal = valorSinal;
+        this.valorSinal = 0;
     }
 
     public int getNumero() {

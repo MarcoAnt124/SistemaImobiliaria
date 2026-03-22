@@ -36,8 +36,7 @@ public class AutenticacaoService {
         return false;
     }
 
-    public boolean verificarADM(Vendedor vendedor) {
-        if (vendedor == null) return false;
-        return vendedor.getIdVendedor() == 666;
+    public boolean verificarADM() {
+        return vendedorAtual.getIdVendedor() == 666;
     }
 }

@@ -17,7 +17,7 @@ public class MenuPrincipal {
         int id = scanner.nextInt();
 
         if (service.verificarID(id)) {
-            if (service.verificarADM(id)) {
+            if (service.verificarADM()) {
                 int config = scanner.nextInt();
                 do {
                     System.out.println("1 - Criar novo usuario");
@@ -25,14 +25,17 @@ public class MenuPrincipal {
 
                 } while (config != 0);
             }
+        } else {
+            System.out.println("O ID" + id + " não está cadastrado!!!!");
+            return;
         }
 
-        if (service.getVendedorAtual == null) {
+        if (service.getVendedorAtual() == null) {
             System.out.println("Erro ao fazer login!");
             return;
         }
 
-        System.out.println("SEJA BEM-VINDO!!!, + vendedor.getnome()");
+        System.out.println("SEJA BEM-VINDO!!!," + " vendedor.getnome()");
 
         int opcaomenuprincipal;
 
@@ -49,7 +52,7 @@ public class MenuPrincipal {
 
             switch (opcaomenuprincipal) {
                 case 1:
-                    menuImoveis(scanner);
+
                     break;
                 case 2:
                     menuClientes(scanner);

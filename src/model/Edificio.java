@@ -10,11 +10,11 @@ public class Edificio {
 
     //TODO: Criar getters, setters
 
-    public Edificio(int id, String nome, String endereco, ArrayList<Andar> andares) {
+    public Edificio(int id, String nome, String endereco) {
         this.id = id;
         this.nome = nome;
         this.endereco = endereco;
-        this.andares = andares;
+        this.andares = new ArrayList<Andar>();
     }
 
     public int getId() {

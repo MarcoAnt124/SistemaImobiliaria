@@ -10,10 +10,10 @@ public class Andar {
     //TODO: Criar getters e setters
 
 
-    public Andar(int numero, int quantidadeDeApartamentos, ArrayList<Apartamento> apartamentos) {
+    public Andar(int numero, int quantidadeDeApartamentos) {
         this.numero = numero;
         this.quantidadeDeApartamentos = quantidadeDeApartamentos;
-        this.apartamentos = apartamentos;
+        this.apartamentos = new ArrayList<Apartamento>();
     }
 
     public int getNumero() {
