@@ -32,5 +32,4 @@ public class Vendedor {
     public String getNome() {
         return nome;
     }
-
 }
