@@ -54,10 +54,9 @@ public class Validar {
 
     public static boolean validarDesconto(double descontoPercentual) {
         // Desconto deve estar em valores percentuais (ex: 8.0 para 8%).
-        // Não aceitamos valores menores que 1 (ex: 0.8), valores negativos, ou 0%.
+        // Não aceitamos valores menores ou iguais à 0%.
 
-        // Permitir apenas valores de 1% a 10%.
-        if (descontoPercentual < 1.0 || descontoPercentual > 10.0) {
+        if (descontoPercentual <= 0) {
             return false;
         }
         return true;
@@ -71,5 +70,3 @@ public class Validar {
         return "R$ " + format.format(valor);
     }
 }
-
-

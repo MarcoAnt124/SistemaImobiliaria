@@ -18,29 +18,33 @@ public class MainTesteValidacao {
         System.out.println();
 
         double descontoValido = 5.0;
-        double descontoMenor1 = 0.5;
-        double descontoMaior10= 12.0;
+        double descontoValido2 = 33.0;
         double descontoNegativo = -3.0;
-        double descontoLimite1 = 1.0;
-        double descontoLimite10 = 10.0;
+        double descontoZero = 0;
         double descontoQuebrado = 7.5;
+        double descontoQuebrado2 = 6.25;
+        double descontoQuebrado3 = 2.689;
+        double descontoQuebrado4 = 9.8753264648946498464;
 
         System.out.println("Desconto válido (5%): " + Validar.validarDesconto(descontoValido));
-        System.out.println("Desconto menor que 1% (0.5%): " + Validar.validarDesconto(descontoMenor1));
-        System.out.println("Desconto maior que 10% (12.0%): " + Validar.validarDesconto(descontoMaior10));
+        System.out.println("Desconto de dois dígitos (33%): " + Validar.validarDesconto(descontoValido2));
         System.out.println("Desconto negativo (-3.0%): " + Validar.validarDesconto(descontoNegativo));
-        System.out.println("Desconto no limite inferior (1.0%): " + Validar.validarDesconto(descontoLimite1));
-        System.out.println("Desconto no limite superior (10.0%): " + Validar.validarDesconto(descontoLimite10));
+        System.out.println("Desconto de 0%: " + Validar.validarDesconto(descontoZero));
         System.out.println("Desconto quebrado (7.5%): " + Validar.validarDesconto(descontoQuebrado));
+        System.out.println("Desconto quebrado 2 (6.25%): " + Validar.validarDesconto(descontoQuebrado2));
+        System.out.println("Desconto quebrado 3 (9.8753264648946498464%): " + Validar.validarDesconto(descontoQuebrado4));
+
         System.out.println();
 
         double valor = 1234.5;
         double valor2 = 524300;
         double valor3 = 0.99;
         double valor4 = 624512.54;
+        double valor5 = 1256348.99;
         System.out.println("Formatar valor 1234.5: " + Validar.formatarValorReais(valor));
         System.out.println("Formatar valor 524300: " + Validar.formatarValorReais(valor2));
         System.out.println("Formatar valor 0.99: " + Validar.formatarValorReais(valor3));
         System.out.println("Formatar valor 624512.54: " + Validar.formatarValorReais(valor4));
+        System.out.println("Formatar valor 1256348.99: " + Validar.formatarValorReais(valor5));
     }
 }
