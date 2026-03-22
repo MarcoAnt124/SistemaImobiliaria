@@ -1,7 +1,7 @@
 package model;
 
 import java.time.LocalDate;
-import valorDeVenda
+import
 
 public class Venda {
     private Vendedor vendedor;
@@ -66,6 +66,8 @@ public class Venda {
         double precoBase = apartamento.getValorDeVenda();
 
         this.dataDaVenda = LocalDate.now(); //defini o horario da conta
+
+        apartamento.setStatusAparamento(VENDIDO);
 
         this.valorFinal = precoBase - (precoBase * (percentualDesconto / 100)); //calcular o valor de desconto
     }
