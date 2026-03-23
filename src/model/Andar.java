@@ -8,4 +8,35 @@ public class Andar {
     private ArrayList<Apartamento> apartamentos;
 
     //TODO: Criar getters e setters
+
+
+    public Andar(int numero, int quantidadeDeApartamentos) {
+        this.numero = numero;
+        this.quantidadeDeApartamentos = quantidadeDeApartamentos;
+        this.apartamentos = new ArrayList<Apartamento>();
+    }
+
+    public int getNumero() {
+        return numero;
+    }
+
+    public void setNumero(int numero) {
+        this.numero = numero;
+    }
+
+    public int getQuantidadeDeApartamentos() {
+        return quantidadeDeApartamentos;
+    }
+
+    public void setQuantidadeDeApartamentos(int quantidadeDeApartamentos) {
+        this.quantidadeDeApartamentos = quantidadeDeApartamentos;
+    }
+
+    public ArrayList<Apartamento> getApartamentos() {
+        return apartamentos;
+    }
+
+    public void setApartamentos(ArrayList<Apartamento> apartamentos) {
+        this.apartamentos = apartamentos;
+    }
 }

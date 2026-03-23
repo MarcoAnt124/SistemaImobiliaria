@@ -2,16 +2,14 @@ package model;
 
 public class Vendedor {
     private int idVendedor;
-    private String nome;
-    private String senha;
+    private String nome;;
 
     //TODO: Criar getters, setters e construtor
 
 
-    public Vendedor(int idVendedor, String nome, String senha) {
+    public Vendedor(int idVendedor, String nome) {
         this.idVendedor = idVendedor;
         this.nome = nome;
-        this.senha = senha;
     }
 
     public int getIdVendedor() {
@@ -26,15 +24,8 @@ public class Vendedor {
         this.nome = nome;
     }
 
-    public void setSenha(String senha) {
-        this.senha = senha;
-    }
 
     public String getNome() {
         return nome;
-    }
-
-    public String getSenha() {
-        return senha;
     }
 }

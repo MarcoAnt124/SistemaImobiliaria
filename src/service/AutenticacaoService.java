@@ -1,4 +1,6 @@
 package service;
+import model.Apartamento;
+import model.StatusApartamento;
 import repository.DadosRepository;
 import model.Vendedor;
 
@@ -6,32 +8,35 @@ import java.util.ArrayList;
 
 public class AutenticacaoService {
     private DadosRepository dados;
+    private Vendedor vendedorAtual;
 
-    public AutenticacaoService(DadosRepository dados) {
-        this.dados = dados;
+    public AutenticacaoService(DadosRepository repositorioAtual) {
+        this.dados = repositorioAtual;
+        this.vendedorAtual = null;
     }
 
-    public Vendedor verificarUsuario(String nome, String senha){
-
-        ArrayList<Vendedor> listaTemp = dados.listaVendedores();
-
-        if(listaTemp == null ||  listaTemp.isEmpty()) return null;
-
-        Vendedor temp = verificarNome(nome, listaTemp);
-
-        return (temp != null && verificarSenha(senha, temp)) ? temp : null;
-
+    public Vendedor getVendedorAtual() {
+        return this.vendedorAtual;
     }
 
-    private Vendedor verificarNome(String nome, ArrayList<Vendedor> lista){
-        for (Vendedor vendedorAtual : lista){
-            if(vendedorAtual.getNome().equals(nome)) return vendedorAtual;
+    public void setVendedorAtual(Vendedor vendedor) {
+        this.vendedorAtual = vendedor;
+    }
+
+    public boolean verificarID(int idVendedor) {
+        ArrayList<Vendedor> listVend = dados.listaVendedores();
+        setVendedorAtual(null);
+
+        for (Vendedor vendAtual : listVend) {
+            if (vendAtual.getIdVendedor() == idVendedor) {
+                setVendedorAtual(vendAtual);
+                return true;
+            }
         }
-
-        return null;
+        return false;
     }
 
-    private boolean verificarSenha(String senha, Vendedor vendedor){
-        return vendedor.getSenha().equals(senha);
+    public boolean verificarADM() {
+        return vendedorAtual.getIdVendedor() == 666;
     }
 }
