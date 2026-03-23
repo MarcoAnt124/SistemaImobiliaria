@@ -7,6 +7,7 @@ import java.util.Scanner;
 
 public class MenuPrincipal {
     private AutenticacaoService service;
+    private SubMenus subMenus;
 
     public void menu() {
 
@@ -52,7 +53,7 @@ public class MenuPrincipal {
 
             switch (opcaomenuprincipal) {
                 case 1:
-
+                    subMenus.gestaoDeImoveis();
                     break;
                 case 2:
                     menuClientes(scanner);

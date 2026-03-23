@@ -10,7 +10,6 @@ import java.util.ArrayList;
 public class ImobiliariaService {
     private DadosRepository dados;
 
-    //TODO: criar método de instancia do edificio
     //TODO: criar método de processamento de venda
     //TODO: criar um método de busca de informações
 
@@ -23,15 +22,9 @@ public class ImobiliariaService {
         return apt.getStatus() == StatusApartamento.DISPONIVEL;
     }
 
-    public Edificio gerarEdificio(int qtdAndares, int qtdApartamentos, Edificio projetoAtual){
-        for(int i = 0; i < qtdAndares; i++){
-
-            for(int j = 0; j < qtdApartamentos; j++){
-            }
-        }
-        return null;
+    public DadosRepository getDados(){
+        return this.dados;
     }
-
 
     public String gerarRelatorioTotal(ArrayList<Edificio> listaEdificio){
         StringBuilder builder = new StringBuilder();
@@ -84,5 +77,76 @@ public class ImobiliariaService {
         sb.append("======================================================================\n");
 
         return sb.toString();
+    }
+
+    public Edificio iniciarNovoEdificio(int id, String nome, String endereco){
+        Edificio novoEdificio = new Edificio(id, nome, endereco);
+        return novoEdificio;
+    }
+
+    public void vincularApartamento(Edificio edificio, int numAndar,int numApt, double area, double preco, int qtdApts, int qtdQuartos, int qtdBanheiros){
+        Andar novoAndar = null;
+        for(Andar andarAtual : edificio.getAndares()){
+            if(andarAtual.getNumero() == numAndar){
+                novoAndar = andarAtual;
+                break;
+            }
+        }
+
+        if(novoAndar == null){
+            novoAndar = new Andar(numAndar, qtdApts);
+            edificio.getAndares().add(novoAndar);
+        }
+
+        Apartamento novoApt = new Apartamento(numApt, novoAndar.getNumero(), area,qtdQuartos, qtdBanheiros, preco);
+        novoAndar.getApartamentos().add(novoApt);
+    }
+
+    public void salvarEdificio(Edificio edificio){
+        dados.guardarEdificio(edificio);
+    }
+
+    public String gerarListaSimplesEdificios(){
+        ArrayList<Edificio> Edificios = dados.getListaEdificio();
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("======================================================================\n");
+        sb.append(String.format(" %-4s | %-25s | %s\n", "ID", "NOME", "ENDEREÇO"));
+        sb.append("----------------------------------------------------------------------\n");
+
+        for(Edificio edificioAtual : Edificios){
+            sb.append(String.format(" %03d  | %-25s | %s\n",
+                    edificioAtual.getId(),
+                    edificioAtual.getNome(),
+                    edificioAtual.getEndereco()));
+        }
+
+        sb.append("======================================================================\n");
+        return sb.toString();
+        }
+
+    public Edificio buscarEdificioPorId(int idEdificio){
+        ArrayList<Edificio> listaEd = dados.getListaEdificio();
+        Edificio edificioSelecionado = null;
+
+        for(Edificio atual : listaEd){
+            if(atual.getId() == idEdificio) {
+                edificioSelecionado = atual;
+                break;
+            }
+        }
+
+        return edificioSelecionado;
+    }
+
+    public Andar buscarAndarNoEdificio(Edificio edificio, int numAndar){
+        Andar andarSelecionado = null;
+        for(Andar andarAtual : edificio.getAndares()){
+            if(andarAtual.getNumero() == numAndar){
+                andarSelecionado = andarAtual;
+                break;
+            }
+        }
+        return andarSelecionado;
     }
 }
