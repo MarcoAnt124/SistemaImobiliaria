@@ -1,8 +1,5 @@
 package service;
-import model.Andar;
-import model.Apartamento;
-import model.Edificio;
-import model.StatusApartamento;
+import model.*;
 import repository.DadosRepository;
 
 import java.util.ArrayList;
@@ -103,7 +100,7 @@ public class ImobiliariaService {
     }
 
     public void salvarEdificio(Edificio edificio){
-        dados.guardarEdificio(edificio);
+        dados.anexarEdificio(edificio);
     }
 
     public String gerarListaSimplesEdificios(){
@@ -148,5 +145,33 @@ public class ImobiliariaService {
             }
         }
         return andarSelecionado;
+    }
+
+    public Apartamento buscarApartamentoNoAndar(Andar andar, int numApt){
+        Apartamento aptSelecionado = null;
+        for(Apartamento aptAtual : andar.getApartamentos()){
+            if(aptAtual.getNumero() == numApt){
+               aptSelecionado = aptAtual;
+               break;
+            }
+        }
+        return aptSelecionado;
+    }
+
+    public boolean atualizarStatus(Apartamento apt, int op){
+        if(op != 1 && op != 2) return false;
+
+        if ((op == 1)) {
+            apt.setStatus(StatusApartamento.DISPONIVEL);
+        } else {
+            apt.setStatus(StatusApartamento.RESERVADO);
+        }
+
+        return true;
+    }
+
+    public boolean adicionarVendedor(String nome, int id){
+        Vendedor novoVendedor = new Vendedor(id, nome);
+        return (dados.anexarVendedor(novoVendedor));
     }
 }

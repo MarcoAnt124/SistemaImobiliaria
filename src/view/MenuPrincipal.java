@@ -23,6 +23,15 @@ public class MenuPrincipal {
                 do {
                     System.out.println("1 - Criar novo usuario");
                     System.out.println("0 - Sair");
+                    if(config == 1){
+                        System.out.println("Insira o nome do Vendedor:");
+                        String nome = scanner.nextLine();
+
+                        System.out.println("Insira o ID do Vendedor:");
+                        int idNovo = scanner.nextInt();
+
+                        (service.adicionarVendedor(nome, idNovo)) ? System.out.println("Cadastro concluido!!!") : System.out.println("Erro no Cadastro!!!");
+                    }
 
                 } while (config != 0);
             }
@@ -42,10 +51,10 @@ public class MenuPrincipal {
 
         do {
             System.out.println("\n  MENU PRINCIPAL");
-            System.out.println("1 - Gestão de imoveis");
-            System.out.println("2 - Gestão de clientes");
-            System.out.println("3 - Realizar venda");
-            System.out.println("4 - Relatorios");
+            System.out.println("1 - Gestão de Imoveis");
+            System.out.println("2 - Gestão de Clientes");
+            System.out.println("3 - Realizar Venda");
+            System.out.println("4 - Histórico de Vendas");
             System.out.println("0 - Sair");
             System.out.print("Escolha: ");
 
@@ -53,7 +62,7 @@ public class MenuPrincipal {
 
             switch (opcaomenuprincipal) {
                 case 1:
-                    subMenus.gestaoDeImoveis();
+                    subMenus.menuImoveis();
                     break;
                 case 2:
                     menuClientes(scanner);

@@ -12,7 +12,7 @@ import java.util.Scanner;
 
 public class SubMenus {
     ImobiliariaService service;
-    public void gestaoDeImoveis(){
+    public void menuImoveis(){
         Scanner scan = new Scanner(System.in);
         int op;
         do{
@@ -41,8 +41,12 @@ public class SubMenus {
                     break;
 
                 case 4:
+                    alterarDadosApartamento();
+                    break;
 
-
+                default:
+                    System.out.println("Opção Inválida!!!");
+                    break;
             }
         } while(op != 0);
     }
@@ -97,7 +101,7 @@ public class SubMenus {
     public void consultarApartamento() {
         Scanner scan = new Scanner(System.in);
 
-        // PASSO 1: Listagem básica de edifícios (ID, Nome, Endereço)
+        //Listagem básica de edifícios (ID, Nome, Endereço)
         System.out.println("\n======================================================================");
         System.out.println("                      LISTA DE EDIFÍCIOS");
         System.out.println("======================================================================");
@@ -108,7 +112,7 @@ public class SubMenus {
         System.out.print("Digite o ID do Edifício que deseja consultar: ");
         int idBusca = scan.nextInt();
 
-        // PASSO 2: Busca o objeto Edifício pelo ID
+        //Busca o objeto Edifício pelo ID
         Edificio ed = service.buscarEdificioPorId(idBusca);
 
         if (ed == null) {
@@ -116,7 +120,7 @@ public class SubMenus {
             return;
         }
 
-        // PASSO 3: Listagem básica dos andares do prédio escolhido
+        //Listagem básica dos andares do prédio escolhido
         System.out.println("\n--- ANDARES DISPONÍVEIS NO " + ed.getNome().toUpperCase() + " ---");
         for (Andar andar : ed.getAndares()) {
             System.out.printf("Andar: %02dº | Quantidade de Apartamentos: %d\n",
@@ -126,7 +130,7 @@ public class SubMenus {
         System.out.print("\nDigite o número do andar que deseja ver os detalhes: ");
         int numAndarBusca = scan.nextInt();
 
-        // PASSO 4: Busca o objeto Andar dentro do Edifício
+        //Busca o objeto Andar dentro do Edifício
         Andar andarEscolhido = service.buscarAndarNoEdificio(ed, numAndarBusca);
 
         if (andarEscolhido == null) {
@@ -134,7 +138,7 @@ public class SubMenus {
             return;
         }
 
-        // PASSO 5: Tabela detalhada dos apartamentos do andar (A parte chata do String.format)
+        //Tabela detalhada dos apartamentos do andar (A parte chata do String.format)
         System.out.println("\n===========================================================================================");
         System.out.println("           DETALHES DOS APARTAMENTOS - ANDAR " + numAndarBusca + "º");
         System.out.println("===========================================================================================");
@@ -153,5 +157,93 @@ public class SubMenus {
             );
         }
         System.out.println("===========================================================================================\n");
+    }
+
+    private void alterarDadosApartamento(){
+        Scanner scan = new Scanner(System.in);
+
+        //Selecionar Edifício
+        System.out.println(service.gerarListaSimplesEdificios());
+        System.out.print("ID do Edifício: ");
+        int idEd = scan.nextInt();
+        Edificio ed = service.buscarEdificioPorId(idEd);
+
+        if (ed == null) {
+            System.out.println("[ERRO] Edifício não encontrado.");
+            return;
+        }
+
+        //Selecionar Andar
+        System.out.println("\n--- ANDARES DO " + ed.getNome().toUpperCase() + " ---");
+        for (Andar a : ed.getAndares()) {
+            System.out.printf("Andar: %02dº | Unidades: %d\n", a.getNumero(), a.getApartamentos().size());
+        }
+
+        System.out.print("Número do Andar: ");
+        int numAndar = scan.nextInt();
+        Andar andar = service.buscarAndarNoEdificio(ed, numAndar);
+
+        if (andar == null) {
+            System.out.println("[ERRO] Andar não encontrado.");
+            return;
+        }
+
+        //Selecionar Apartamento
+        System.out.println("\n--- UNIDADES NO " + numAndar + "º ANDAR ---");
+        for (Apartamento a : andar.getApartamentos()) {
+            System.out.print("[" + a.getNumero() + "] ");
+        }
+        System.out.print("\nNúmero do Apartamento para editar: ");
+        int numApto = scan.nextInt();
+
+        Apartamento apto = service.buscarApartamentoNoAndar(andar, numApto);
+
+        if (apto == null) {
+            System.out.println("[ERRO] Apartamento não encontrado.");
+            return;
+        }
+
+        menuAlteracao(apto, scan);
+    }
+
+    public void menuAlteracao(Apartamento apt, Scanner scan){
+        int subOp;
+        do {
+            System.out.println("\n====================================================");
+            System.out.println("       EDITANDO APARTAMENTO " + apt.getNumero());
+            System.out.println("====================================================");
+            System.out.printf(" 1. Status        | Atual: %s\n", apt.getStatus());
+            System.out.printf(" 2. Valor Venda   | Atual: R$ %,.2f\n", apt.getValorDeVenda());
+            System.out.printf(" 3. Valor Sinal   | Atual: R$ %,.2f\n", apt.getValorSinal());
+            System.out.println(" 0. Concluir/Voltar");
+            System.out.println("----------------------------------------------------");
+            System.out.print("Escolha o que alterar: ");
+            subOp = scan.nextInt();
+
+            switch (subOp) {
+                case 1:
+                    System.out.print("Novo Status (1-DISPONIVEL, 2-RESERVADO): ");
+                    int st = scan.nextInt();
+                    if(!service.atualizarStatus(apt, st)){
+                        System.out.println("Opção Inválida!!!");
+                    };
+                    break;
+                case 2:
+                    System.out.print("Novo Valor de Venda: R$ ");
+                    double novoValor = scan.nextDouble();
+                    apt.setValorDeVenda(novoValor);
+                    break;
+                case 3:
+                    System.out.print("Novo Valor de Sinal: R$ ");
+                    double novoSinal = scan.nextDouble();
+                    apt.setValorSinal(novoSinal);
+                    break;
+                case 0:
+                    System.out.println("[OK] Alterações finalizadas.");
+                    break;
+                default:
+                    System.out.println("Opção inválida.");
+            }
+        } while (subOp != 0);
     }
 }
