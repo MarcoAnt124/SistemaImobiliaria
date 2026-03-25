@@ -2,12 +2,20 @@ package view;
 
 import model.Vendedor;
 import service.AutenticacaoService;
+import service.ImobiliariaService;
 
 import java.util.Scanner;
 
 public class MenuPrincipal {
-    private AutenticacaoService service;
+    private AutenticacaoService serviceAut;
+    private ImobiliariaService serviceImo;
     private SubMenus subMenus;
+
+    public MenuPrincipal(AutenticacaoService serviceAut, ImobiliariaService serviceImo, SubMenus subMenus) {
+        this.serviceAut = serviceAut;
+        this.serviceImo = serviceImo;
+        this.subMenus = subMenus;
+    }
 
     public void menu() {
 
@@ -17,9 +25,10 @@ public class MenuPrincipal {
         System.out.println("Digite seu ID: ");
         int id = scanner.nextInt();
 
-        if (service.verificarID(id)) {
-            if (service.verificarADM()) {
+        if (serviceAut.verificarID(id)) {
+            if (serviceAut.verificarADM()) {
                 int config = scanner.nextInt();
+                scanner.nextLine();
                 do {
                     System.out.println("1 - Criar novo usuario");
                     System.out.println("0 - Sair");
@@ -30,7 +39,11 @@ public class MenuPrincipal {
                         System.out.println("Insira o ID do Vendedor:");
                         int idNovo = scanner.nextInt();
 
-                        (service.adicionarVendedor(nome, idNovo)) ? System.out.println("Cadastro concluido!!!") : System.out.println("Erro no Cadastro!!!");
+                        if ((serviceImo.adicionarVendedor(nome, idNovo))) {
+                            System.out.println("Cadastro concluido!!!");
+                        } else {
+                            System.out.println("Erro no Cadastro!!!");
+                        }
                     }
 
                 } while (config != 0);
@@ -40,7 +53,7 @@ public class MenuPrincipal {
             return;
         }
 
-        if (service.getVendedorAtual() == null) {
+        if (serviceAut.getVendedorAtual() == null) {
             System.out.println("Erro ao fazer login!");
             return;
         }
@@ -65,10 +78,9 @@ public class MenuPrincipal {
                     subMenus.menuImoveis();
                     break;
                 case 2:
-                    menuClientes(scanner);
+                    subMenus.menuClientes();
                     break;
                 case 3:
-                    service.fazerNegocio();
                     break;
                 case 4:
                     System.out.println("Exibindo vendas realizadas");

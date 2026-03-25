@@ -1,7 +1,8 @@
 package model;
 
 import java.time.LocalDate;
-import
+
+import static model.StatusApartamento.VENDIDO;
 
 public class Venda {
     private Vendedor vendedor;
@@ -67,7 +68,7 @@ public class Venda {
 
         this.dataDaVenda = LocalDate.now(); //defini o horario da conta
 
-        apartamento.setStatusAparamento(VENDIDO);
+        apartamento.setStatusApartamento(StatusApartamento.VENDIDO);
 
         this.valorFinal = precoBase - (precoBase * (percentualDesconto / 100)); //calcular o valor de desconto
     }

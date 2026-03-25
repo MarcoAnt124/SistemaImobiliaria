@@ -174,4 +174,5 @@ public class ImobiliariaService {
         Vendedor novoVendedor = new Vendedor(id, nome);
         return (dados.anexarVendedor(novoVendedor));
     }
+
 }

@@ -29,6 +29,10 @@ public class Apartamento {
         this.valorSinal = 0;
     }
 
+    public void setStatusApartamento(StatusApartamento status){
+        this.status = status;
+    }
+
     public int getNumero() {
         return numero;
     }
