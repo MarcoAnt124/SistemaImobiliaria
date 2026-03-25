@@ -5,7 +5,7 @@ public class Cliente {
     private String cpf;
     private String rg;
     private String estadoCivil;
-    private Cliente conjuge;
+    private Conjugue conjuge;
 
     public Cliente(String nome, String cpf, String rg, String estadoCivil) { //construtor de cliente sem conjuge
         this.nome = nome;
@@ -15,7 +15,7 @@ public class Cliente {
         this.conjuge = null;
     }
 
-    public Cliente(String nome, String cpf, String rg, String estadoCivil, Cliente conjuge) { //construtor de cliente com conjuge
+    public Cliente(String nome, String cpf, String rg, String estadoCivil, Conjugue conjuge) { //construtor de cliente com conjuge
         this.nome = nome;
         this.cpf = cpf;
         this.rg = rg;
@@ -59,11 +59,11 @@ public class Cliente {
         }
     }
 
-    public Cliente getConjuge() {
+    public Conjugue getConjuge() {
         return conjuge;
     }
 
-    public void setConjuge(Cliente conjuge) {
+    public void setConjuge(Conjugue conjuge) {
         this.conjuge = conjuge;
     }
 }
