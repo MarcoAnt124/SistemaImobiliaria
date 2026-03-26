@@ -370,40 +370,73 @@ public class SubMenus {
             System.out.println("       EDITANDO APARTAMENTO " + apt.getNumero());
             System.out.println("====================================================");
             System.out.printf(" 1. Status        | Atual: %s\n", apt.getStatus());
+
+            // Exibe o interessado apenas se estiver reservado
+            if (apt.getStatus() == StatusApartamento.RESERVADO) {
+                String interessado = (apt.getCpfInteressado() == null || apt.getCpfInteressado().isEmpty())
+                        ? "NÃO VINCULADO" : apt.getCpfInteressado();
+                System.out.printf("    > Interessado | CPF: %s\n", interessado);
+            }
+
             System.out.printf(" 2. Valor Venda   | Atual: R$ %,.2f\n", apt.getValorDeVenda());
             System.out.printf(" 3. Valor Sinal   | Atual: R$ %,.2f\n", apt.getValorSinal());
             System.out.println(" 0. Concluir/Voltar");
             System.out.println("----------------------------------------------------");
             System.out.print("Escolha o que alterar: ");
+
             subOp = scan.nextInt();
+            scan.nextLine();
 
             switch (subOp) {
                 case 1:
                     System.out.print("Novo Status (1-DISPONIVEL, 2-RESERVADO): ");
                     int st = scan.nextInt();
-                    if(!service.atualizarStatus(apt, st)){
-                        System.out.println("Opção Inválida!!!");
+                    scan.nextLine();
+
+                    String cpf = "";
+                    if(st == 2){
+                        System.out.print("Insira o CPF do interessado: ");
+                        cpf = scan.nextLine();
+
+                        System.out.print("Insira o valor do sinal (R$): ");
+                        double sinal = scan.nextDouble();
+                        scan.nextLine();
+                        apt.setValorSinal(sinal);
+                    } else if (st == 1) {
+                        apt.setValorSinal(0);
+                    }
+
+                    if(!service.atualizarStatus(apt, st, cpf)){
+                        System.out.println("[ERRO] Opção de status inválida!");
+                        pausar();
                     }
                     break;
+
                 case 2:
                     System.out.print("Novo Valor de Venda: R$ ");
                     double novoValor = scan.nextDouble();
+                    scan.nextLine();
                     apt.setValorDeVenda(novoValor);
                     break;
+
                 case 3:
                     System.out.print("Novo Valor de Sinal: R$ ");
                     double novoSinal = scan.nextDouble();
+                    scan.nextLine();
                     apt.setValorSinal(novoSinal);
                     break;
+
                 case 0:
                     System.out.println("[OK] Alterações finalizadas.");
                     break;
+
                 default:
                     System.out.println("Opção inválida.");
+                    pausar();
             }
         } while (subOp != 0);
 
-        // Persistir alterações realizadas no objeto já referenciado pelo repositório
+        // Persistir alterações realizadas
         service.getDados().gravarArquivo();
     }
 
@@ -483,31 +516,33 @@ public class SubMenus {
 
         limparConsole();
 
-        System.out.println("\n==========================================================================================");
-        System.out.println("                                LISTAGEM: APARTAMENTOS RESERVADOS");
-        System.out.println("==========================================================================================");
-        System.out.println(" APTO | ANDAR | ÁREA (m²) | VALOR DE VENDA (R$) | VALOR DO SINAL (R$)                     ");
-        System.out.println("------|-------|-----------|---------------------|-----------------------------------------");
+        System.out.println("\n===============================================================================================================");
+        System.out.println("                                     LISTAGEM: APARTAMENTOS RESERVADOS");
+        System.out.println("===============================================================================================================");
+        System.out.println(" APTO | ANDAR | ÁREA (m²) | VALOR DE VENDA (R$) | VALOR DO SINAL (R$)   | CPF INTERESSADO");
+        System.out.println("------|-------|-----------|---------------------|-----------------------|--------------------------------------");
 
         for(Andar andarAtual : edificio.getAndares()){
             for(Apartamento aptAtual : andarAtual.getApartamentos()){
                 if(aptAtual.getStatus() == StatusApartamento.RESERVADO){
                     System.out.printf(new java.util.Locale("pt", "BR"),
-                            " %-4d | %02dº   | %-9.1f | R$ %,-17.2f | R$ %,-17.2f\n",
+                            " %-4d | %02dº   | %-9.1f | R$ %,-17.2f | R$ %,-19.2f | %-15s\n",
                             aptAtual.getNumero(),
                             andarAtual.getNumero(),
                             aptAtual.getMetragem(),
                             aptAtual.getValorDeVenda(),
-                            aptAtual.getValorSinal()
+                            aptAtual.getValorSinal(),
+                            (aptAtual.getCpfInteressado() == null || aptAtual.getCpfInteressado().isEmpty() ? "NÃO INFORMADO" : aptAtual.getCpfInteressado())
                     );
                     ctd++;
                 }
             }
         }
+
         if(ctd != 0) {
-            System.out.println("------------------------------------------------------------------------------------------");
+            System.out.println("---------------------------------------------------------------------------------------------------------------");
             System.out.printf(" Total de unidades reservadas encontradas: %d\n", ctd);
-            System.out.println("==========================================================================================\n");
+            System.out.println("===============================================================================================================\n");
         } else {
             System.out.println("  [AVISO] Não há unidades reservadas neste edifício no momento.");
         }

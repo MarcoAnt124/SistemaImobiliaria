@@ -21,24 +21,27 @@ public class MenuPrincipal {
 
     public void iniciarSistema() {
         limparConsole();
-        System.out.println("========================================");
-        System.out.println("          SISTEMA IMOBILIÁRIO");
-        System.out.println("========================================");
-        System.out.print("Digite seu ID de acesso: ");
-        int id = scan.nextInt();
-        scan.nextLine();
+        int id;
+        do {
+            System.out.println("========================================");
+            System.out.println("          SISTEMA IMOBILIÁRIO");
+            System.out.println("========================================");
+            System.out.print("Digite seu ID de acesso: ");
+            id = scan.nextInt();
+            scan.nextLine();
 
-        if (serviceAut.verificarID(id)) {
-            if (serviceAut.verificarADM()) {
-                menuAdministrativo();
+            if (serviceAut.verificarID(id)) {
+                if (serviceAut.verificarADM()) {
+                    menuAdministrativo();
+                }
+
+                exibirMenuPrincipal();
+
+            } else {
+                System.out.println("\n[ERRO] O ID " + id + " não está cadastrado!");
+                pausar();
             }
-
-            exibirMenuPrincipal();
-
-        } else {
-            System.out.println("\n[ERRO] O ID " + id + " não está cadastrado!");
-            pausar();
-        }
+        }while(!serviceAut.verificarID(id));
     }
 
     private void menuAdministrativo() {

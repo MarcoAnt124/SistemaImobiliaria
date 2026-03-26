@@ -199,13 +199,16 @@ public class ImobiliariaService {
         return aptSelecionado;
     }
 
-    public boolean atualizarStatus(Apartamento apt, int op){
+    public boolean atualizarStatus(Apartamento apt, int op, String cpf){
         if(op != 1 && op != 2) return false;
 
         if ((op == 1)) {
             apt.setStatus(StatusApartamento.DISPONIVEL);
+            apt.setCpfInteressado("");
+            apt.setValorSinal(0);
         } else {
             apt.setStatus(StatusApartamento.RESERVADO);
+            apt.setCpfInteressado(cpf);
         }
 
         return true;

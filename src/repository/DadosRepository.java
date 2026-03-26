@@ -293,6 +293,7 @@ public class DadosRepository {
             sb.append("\"quantidadeDeBanheiros\":").append(apt.getQuantidadeDeBanheiros()).append(",");
             sb.append("\"valorDeVenda\":").append(apt.getValorDeVenda()).append(",");
             sb.append("\"valorSinal\":").append(apt.getValorSinal()).append(",");
+            sb.append("\"cpfInteressado\":\"").append(escape(apt.getCpfInteressado())).append("\",");
             StatusApartamento aptStatus = (apt.getStatus() == null ? StatusApartamento.DISPONIVEL : apt.getStatus());
             sb.append("\"status\":\"").append(aptStatus.name()).append("\"");
             sb.append("},");
@@ -340,6 +341,7 @@ public class DadosRepository {
             sb.append("\"quantidadeDeBanheiros\":").append(apt.getQuantidadeDeBanheiros()).append(",");
             sb.append("\"valorDeVenda\":").append(apt.getValorDeVenda()).append(",");
             sb.append("\"valorSinal\":").append(apt.getValorSinal()).append(",");
+            sb.append("\"cpfInteressado\":\"").append(escape(apt.getCpfInteressado())).append("\",");
             sb.append("\"status\":\"").append(apt.getStatus().name()).append("\"");
             sb.append("}");
         }
@@ -396,6 +398,7 @@ public class DadosRepository {
                                     objApt.getDouble("valorDeVenda", 0.0)
                             );
                             apt.setValorSinal(objApt.getDouble("valorSinal", 0.0));
+                            apt.setCpfInteressado(objApt.getString("cpfInteressado", ""));
                             String status = objApt.getString("status", StatusApartamento.DISPONIVEL.name());
                             try {
                                 apt.setStatus(StatusApartamento.valueOf(status));
@@ -506,6 +509,7 @@ public class DadosRepository {
                     objApartamento.getDouble("valorDeVenda", 0.0)
             );
             apt.setValorSinal(objApartamento.getDouble("valorSinal", 0.0));
+            apt.setCpfInteressado(objApartamento.getString("cpfInteressado", ""));
             String status = objApartamento.getString("status", StatusApartamento.DISPONIVEL.name());
             try {
                 apt.setStatusApartamento(StatusApartamento.valueOf(status));

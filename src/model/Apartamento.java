@@ -9,6 +9,7 @@ public class Apartamento {
     private int quantidadeDeBanheiros;
     private double valorDeVenda;
     private double valorSinal;
+    private String cpfInteressado;
 
     public void setStatus(StatusApartamento statusNovo){
         this.status = statusNovo;
@@ -27,6 +28,15 @@ public class Apartamento {
         this.quantidadeDeBanheiros = quantidadeDeBanheiros;
         this.valorDeVenda = valorDeVenda;
         this.valorSinal = 0;
+        this.cpfInteressado = "";
+    }
+
+    public String getCpfInteressado() {
+        return cpfInteressado;
+    }
+
+    public void setCpfInteressado(String cpfInteressado) {
+        this.cpfInteressado = cpfInteressado;
     }
 
     public void setStatusApartamento(StatusApartamento status){
