@@ -24,7 +24,7 @@ public class ImobiliariaService {
         ArrayList<Venda> listaVendas = dados.getListaVendas();
         StringBuilder sb = new StringBuilder();
 
-        int somaTotal = 0;
+        double somaTotal = 0.0;
 
         sb.append("\n====================================================================================================\n");
         sb.append(String.format("%65s\n", "RELATÓRIO HISTÓRICO DE VENDAS"));

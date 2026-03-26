@@ -243,11 +243,18 @@ public class DadosRepository {
 
     private String gerarJsonVendas(List<Venda> vendas) {
         StringBuilder sb = new StringBuilder("[");
+        boolean primeiro = true;
         for (int i = 0; i < vendas.size(); i++) {
             Venda venda = vendas.get(i);
-            if (i > 0) {
+            if (venda == null || venda.getVendedor() == null || venda.getCliente() == null || venda.getApartamento() == null) {
+                // Se a venda estiver inconsistente, evitamos quebrar a persistência.
+                continue;
+            }
+
+            if (!primeiro) {
                 sb.append(",");
             }
+            primeiro = false;
 
             sb.append("{");
 
@@ -286,7 +293,8 @@ public class DadosRepository {
             sb.append("\"quantidadeDeBanheiros\":").append(apt.getQuantidadeDeBanheiros()).append(",");
             sb.append("\"valorDeVenda\":").append(apt.getValorDeVenda()).append(",");
             sb.append("\"valorSinal\":").append(apt.getValorSinal()).append(",");
-            sb.append("\"status\":\"").append(apt.getStatus().name()).append("\"");
+            StatusApartamento aptStatus = (apt.getStatus() == null ? StatusApartamento.DISPONIVEL : apt.getStatus());
+            sb.append("\"status\":\"").append(aptStatus.name()).append("\"");
             sb.append("},");
 
             // DADOS DE VENDA

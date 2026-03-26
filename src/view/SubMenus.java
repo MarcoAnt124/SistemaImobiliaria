@@ -115,29 +115,65 @@ public class SubMenus {
         Edificio edAtual = service.buscarEdificioPorId(idEdificio);
         scan.nextLine();
 
+        if (edAtual == null) {
+            System.out.println("[ERRO] Edifício não encontrado.");
+            pausar();
+            return;
+        }
+
         filtroReservados(idEdificio);
         System.out.println("Insira o número do andar que deseja:");
         int numAndar = scan.nextInt();
         Andar anAtual = service.buscarAndarNoEdificio(edAtual, numAndar);
         scan.nextLine();
 
+        if (anAtual == null) {
+            System.out.println("[ERRO] Andar não encontrado neste edifício.");
+            pausar();
+            return;
+        }
+
         System.out.println("Insira o numero do apt que deseja vender:");
         int numApt = scan.nextInt();
         Apartamento aptAtual = service.buscarApartamentoNoAndar(anAtual, numApt);
         scan.nextLine();
 
+        if (aptAtual == null) {
+            System.out.println("[ERRO] Apartamento não encontrado neste andar.");
+            pausar();
+            return;
+        }
+
         System.out.println("Insira o CPF do Cliente:");
         String cpfCliente = scan.nextLine();
-        if(validar.validarCPF(cpfCliente)){
+        if(!validar.validarCPF(cpfCliente)){
             System.out.println("CPF inválido!!!");
             pausar();
             return;
         }
         Cliente clienteAtual = service.buscaCliente(cpfCliente);
 
+        if (clienteAtual == null) {
+            System.out.println("[ERRO] Cliente não encontrado!!!");
+            pausar();
+            return;
+        }
+
         System.out.println("Insira a quantia do desconto:");
         double desconto = scan.nextDouble();
         scan.nextLine();
+
+        if (!validar.validarDesconto(desconto)) {
+            System.out.println("[ERRO] Desconto inválido. Informe um percentual > 0.");
+            pausar();
+            return;
+        }
+
+        if (autenticacaoService.getVendedorAtual() == null) {
+            System.out.println("[ERRO] Vendedor não autenticado.");
+            pausar();
+            return;
+        }
 
         Venda vendaAtual = new Venda(autenticacaoService.getVendedorAtual(), aptAtual, clienteAtual, desconto);
 
@@ -366,6 +402,9 @@ public class SubMenus {
                     System.out.println("Opção inválida.");
             }
         } while (subOp != 0);
+
+        // Persistir alterações realizadas no objeto já referenciado pelo repositório
+        service.getDados().gravarArquivo();
     }
 
     public void menuDisponibilidade(){
@@ -523,7 +562,13 @@ public class SubMenus {
             default:
                 System.out.println("Erro, Opção inválida!!!");
                 pausar();
-                break;
+                return;
+        }
+
+        if (estado == null) {
+            System.out.println("[ERRO] Estado civil inválido.");
+            pausar();
+            return;
         }
         Cliente clienteCadastro = null;
         if(conjuge != null){
@@ -656,6 +701,8 @@ public class SubMenus {
         } while(op != 0);
 
         System.out.println("\n[OK] Informação atualizada com sucesso!");
+        // Persistir alterações no arquivo JSON
+        service.getDados().gravarArquivo();
         pausar();
 
     }
@@ -688,10 +735,12 @@ public class SubMenus {
 
             case 3:
                 cliente.setEstadoCivil(EstadoCivil.DIVORCIADO);
+                cliente.setConjugue(null);
                 break;
 
             case 4:
                 cliente.setEstadoCivil(EstadoCivil.VIUVO);
+                cliente.setConjugue(null);
                 break;
 
             default:
