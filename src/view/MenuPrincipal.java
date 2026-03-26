@@ -10,70 +10,86 @@ public class MenuPrincipal {
     private AutenticacaoService serviceAut;
     private ImobiliariaService serviceImo;
     private SubMenus subMenus;
+    private Scanner scan;
 
-    public MenuPrincipal(AutenticacaoService serviceAut, ImobiliariaService serviceImo, SubMenus subMenus) {
+    public MenuPrincipal(AutenticacaoService serviceAut, ImobiliariaService serviceImo, SubMenus subMenus, Scanner scan) {
         this.serviceAut = serviceAut;
         this.serviceImo = serviceImo;
         this.subMenus = subMenus;
+        this.scan = scan;
     }
 
-    public void menu() {
-
-        Scanner scanner = new Scanner(System.in);
-
-        System.out.println("LOGIN");
-        System.out.println("Digite seu ID: ");
-        int id = scanner.nextInt();
+    public void iniciarSistema() {
+        limparConsole();
+        System.out.println("========================================");
+        System.out.println("          SISTEMA IMOBILIÁRIO");
+        System.out.println("========================================");
+        System.out.print("Digite seu ID de acesso: ");
+        int id = scan.nextInt();
+        scan.nextLine();
 
         if (serviceAut.verificarID(id)) {
             if (serviceAut.verificarADM()) {
-                int config = scanner.nextInt();
-                scanner.nextLine();
-                do {
-                    System.out.println("1 - Criar novo usuario");
-                    System.out.println("0 - Sair");
-                    if(config == 1){
-                        System.out.println("Insira o nome do Vendedor:");
-                        String nome = scanner.nextLine();
-
-                        System.out.println("Insira o ID do Vendedor:");
-                        int idNovo = scanner.nextInt();
-
-                        if ((serviceImo.adicionarVendedor(nome, idNovo))) {
-                            System.out.println("Cadastro concluido!!!");
-                        } else {
-                            System.out.println("Erro no Cadastro!!!");
-                        }
-                    }
-
-                } while (config != 0);
+                menuAdministrativo();
             }
+
+            exibirMenuPrincipal();
+
         } else {
-            System.out.println("O ID" + id + " não está cadastrado!!!!");
-            return;
+            System.out.println("\n[ERRO] O ID " + id + " não está cadastrado!");
+            pausar();
         }
+    }
 
-        if (serviceAut.getVendedorAtual() == null) {
-            System.out.println("Erro ao fazer login!");
-            return;
-        }
+    private void menuAdministrativo() {
+        int config;
+        do {
+            limparConsole();
+            System.out.println("==== PAINEL ADMINISTRATIVO (ID 666) ====");
+            System.out.println("1 - Cadastrar Novo Vendedor");
+            System.out.println("0 - Prosseguir para o Sistema");
+            System.out.print("Escolha: ");
+            config = scan.nextInt();
+            scan.nextLine();
 
-        System.out.println("SEJA BEM-VINDO!!!," + " vendedor.getnome()");
+            if (config == 1) {
+                System.out.print("Nome do novo Vendedor: ");
+                String nome = scan.nextLine();
+                System.out.print("ID para o novo Vendedor: ");
+                int idNovo = scan.nextInt();
+                scan.nextLine();
 
-        int opcaomenuprincipal;
+                if (serviceImo.adicionarVendedor(nome, idNovo)) {
+                    System.out.println("[OK] Vendedor cadastrado com sucesso!");
+                } else {
+                    System.out.println("[ERRO] Falha ao cadastrar vendedor.");
+                }
+                pausar();
+            }
+        } while (config != 0);
+    }
+
+    private void exibirMenuPrincipal() {
+        Vendedor logado = serviceAut.getVendedorAtual();
+        int op;
 
         do {
-            System.out.println("\n  MENU PRINCIPAL");
-            System.out.println("1 - Gestão de Imoveis");
-            System.out.println("2 - Gestão de Clientes");
-            System.out.println("3 - Realizar Venda");
-            System.out.println("4 - Histórico de Vendas");
-            System.out.println("0 - Sair");
-            System.out.print("Escolha: ");
+            limparConsole();
+            System.out.println("========================================");
+            System.out.println("   SEJA BEM-VINDO, " + logado.getNome().toUpperCase());
+            System.out.println("========================================");
+            System.out.println(" 1 - Gestão de Imóveis");
+            System.out.println(" 2 - Gestão de Clientes");
+            System.out.println(" 3 - Efetuar Venda (Fechar Negócio)");
+            System.out.println(" 4 - Histórico de Vendas");
+            System.out.println(" 0 - Sair do Sistema");
+            System.out.println("----------------------------------------");
+            System.out.print("Escolha uma opção: ");
 
-            opcaomenuprincipal = scanner.nextInt();
+            op = scan.nextInt();
+            scan.nextLine();
 
-            switch (opcaomenuprincipal) {
+            switch (op) {
                 case 1:
                     subMenus.menuImoveis();
                     break;
@@ -81,89 +97,29 @@ public class MenuPrincipal {
                     subMenus.menuClientes();
                     break;
                 case 3:
+                    subMenus.fecharVenda();
                     break;
                 case 4:
-                    System.out.println("Exibindo vendas realizadas");
+                    subMenus.listarVendas();
+                    pausar();
                     break;
                 case 0:
-                    System.out.println("Saindo");
+                    System.out.println("Finalizando sessão... Até logo!");
                     break;
                 default:
-                    System.out.println("Opcao Invalida!");
+                    System.out.println("Opção inválida!");
+                    pausar();
             }
-        } while (opcaomenuprincipal != 0);
+        } while (op != 0);
     }
 
-    public void menuImoveis(Scanner scanner) {
-        int opcaomenuimoveis;
-
-        do {
-            System.out.println("\n Gestão de Imoveis");
-            System.out.println("1 - Cadastrar edificio");
-            System.out.println("2 - Alterar situação do apartamento");
-            System.out.println("3 - Listar disponiveis");
-            System.out.println("4 - Listar reservados");
-            System.out.println("5 - Listar vendidos");
-            System.out.println("6 - Sair");
-            System.out.print("Escolha: ");
-
-            opcaomenuimoveis = scanner.nextInt();
-
-            switch (opcaomenuimoveis) {
-                case 1:
-                    System.out.println("Cadastrando edificio");
-                    break;
-                case 2:
-                    System.out.println("Alterando status");
-                    break;
-                case 3:
-                    System.out.println("Listando disponiveis");
-                    break;
-                case 4:
-                    System.out.println("Listando reservados");
-                    break;
-                case 5:
-                    System.out.println("Listando vendidos");
-                    break;
-                case 6:
-                    System.out.println("Voltando");
-                    break;
-                default:
-                    System.out.println("Opcao invalida!");
-            }
-        } while (opcaomenuimoveis != 6);
+    private void limparConsole() {
+        System.out.print("\033[H\033[2J");
+        System.out.flush();
     }
 
-    public void menuClientes(Scanner scanner) {
-        int opcaomenuclientes;
-
-        do {
-            System.out.println("\n Gestao de cliente");
-            System.out.println("1 - Cadastrar cliente");
-            System.out.println("2 - Buscar por CPF");
-            System.out.println("3 - Buscar por nome");
-            System.out.println("4 - Sair");
-            System.out.print("Escolha: ");
-
-            opcaomenuclientes = scanner.nextInt();
-
-            switch (opcaomenuclientes) {
-                case 1:
-                    System.out.println("Cadastrando cliente");
-                    break;
-                case 2:
-                    System.out.println("Buscando por CPF");
-                    break;
-                case 3:
-                    System.out.println("Buscando por nome");
-                    break;
-                case 4:
-                    System.out.println("Voltando");
-                    break;
-                default:
-                    System.out.println("Opcao invalida!");
-
-            }
-        } while (opcaomenuclientes != 4) ;
+    private void pausar() {
+        System.out.println("\nPressione ENTER para continuar...");
+        scan.nextLine();
     }
 }

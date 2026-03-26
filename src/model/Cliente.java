@@ -4,10 +4,10 @@ public class Cliente {
     private String nome;
     private String cpf;
     private String rg;
-    private String estadoCivil;
-    private Conjugue conjuge;
+    private EstadoCivil estadoCivil;
+    private Conjuge conjuge;
 
-    public Cliente(String nome, String cpf, String rg, String estadoCivil) { //construtor de cliente sem conjuge
+    public Cliente(String nome, String cpf, String rg, EstadoCivil estadoCivil) { //construtor de cliente sem conjuge
         this.nome = nome;
         this.cpf = cpf;
         this.rg = rg;
@@ -15,7 +15,10 @@ public class Cliente {
         this.conjuge = null;
     }
 
-    public Cliente(String nome, String cpf, String rg, String estadoCivil, Conjugue conjuge) { //construtor de cliente com conjuge
+    public Cliente() {
+    }
+
+    public Cliente(String nome, String cpf, String rg, EstadoCivil estadoCivil, Conjuge conjuge) { //construtor de cliente com conjuge
         this.nome = nome;
         this.cpf = cpf;
         this.rg = rg;
@@ -47,23 +50,20 @@ public class Cliente {
         this.rg = rg;
     }
 
-    public String getEstadoCivil() {
+    public EstadoCivil getEstadoCivil() {
         return estadoCivil;
     }
 
-    public void setEstadoCivil(String estadoCivil) {
-        if (estadoCivil.equalsIgnoreCase("Casado") && this.conjuge == null) { //se tentar colocar como casado mas nao possuir conjuge
-            System.out.println("Erro: Para alterar o estado para Casado, é necessário informar o cônjuge primeiro");
-        } else {
-            this.estadoCivil = estadoCivil;
-        }
+    public void setEstadoCivil(EstadoCivil estadoCivil) {
+        this.estadoCivil = estadoCivil;
     }
 
-    public Conjugue getConjuge() {
-        return conjuge;
+    public Conjuge getConjuge() {return conjuge;
     }
 
-    public void setConjuge(Conjugue conjuge) {
+    public void setConjugue(Conjuge conjuge) {
         this.conjuge = conjuge;
     }
+
+
 }

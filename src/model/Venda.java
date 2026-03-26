@@ -59,7 +59,7 @@ public class Venda {
         this.valorFinal = valorFinal;
     }
 
-    public void fecharNegocio(Vendedor vendedor, Apartamento apartamento, Cliente cliente, double percentualDesconto){
+    public Venda(Vendedor vendedor, Apartamento apartamento, Cliente cliente, double percentualDesconto){
         this.vendedor = vendedor;
         this.apartamento = apartamento;
         this.cliente = cliente;

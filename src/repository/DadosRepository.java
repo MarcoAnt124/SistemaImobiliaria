@@ -1,11 +1,8 @@
 package repository;
 
-import model.Andar;
-import model.Apartamento;
-import model.Edificio;
-import model.StatusApartamento;
-import model.Vendedor;
+import model.*;
 
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.util.ArrayList;
 import java.util.List;
 import java.nio.charset.StandardCharsets;
@@ -18,11 +15,31 @@ public class DadosRepository {
 
     private ArrayList<Vendedor> listaVendedores;
     private ArrayList<Edificio> listaEdificios;
+    private ArrayList<Cliente> listaClientes;
+    private ArrayList<Venda> listaVendas;
 
     public DadosRepository() {
         this.listaVendedores = new ArrayList<>();
         this.listaEdificios = new ArrayList<>();
+        this.listaClientes = new ArrayList<>();
+        this.listaVendas = new ArrayList<>();
         lerArquivo();
+    }
+
+    public ArrayList<Cliente> getListaClientes() {
+        return listaClientes;
+    }
+
+    public void setListaClientes(ArrayList<Cliente> listaClientes) {
+        this.listaClientes = listaClientes;
+    }
+
+    public ArrayList<Venda> getListaVendas() {
+        return listaVendas;
+    }
+
+    public void setListaVendas(ArrayList<Venda> listaVendas) {
+        this.listaVendas = listaVendas;
     }
 
     public ArrayList<Vendedor> listaVendedores(){
@@ -57,6 +74,16 @@ public class DadosRepository {
 
         this.listaEdificios.add(edificio);
         return gravarArquivo();
+    }
+
+    public boolean anexarCliente(Cliente cliente){
+        //Só o esqueleto para teste
+        return false;
+    }
+
+    public boolean anexarVenda(Venda venda){
+        //Só o esqueleto para teste
+        return false;
     }
 
     public boolean gravarArquivo() {

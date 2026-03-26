@@ -1,11 +1,11 @@
 package model;
 
-public class Conjugue {
+public class Conjuge {
     private String nome;
     private String cpf;
     private String rg;
 
-    public Conjugue(String nome, String cpf, String rg) {
+    public Conjuge(String nome, String cpf, String rg) {
         this.nome = nome;
         this.cpf = cpf;
         this.rg = rg;
