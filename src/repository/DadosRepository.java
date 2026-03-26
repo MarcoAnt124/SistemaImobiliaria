@@ -3,6 +3,7 @@ package repository;
 import model.*;
 
 import java.nio.file.AtomicMoveNotSupportedException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.nio.charset.StandardCharsets;
@@ -46,6 +47,23 @@ public class DadosRepository {
         return this.listaVendedores;
     }
 
+    public ArrayList<Cliente> listaClientes() {
+        return this.listaClientes;
+    }
+
+    public ArrayList<Venda> listaVendas() {
+        return this.listaVendas;
+    }
+
+    // Métodos "de salvar" exigidos pelo projeto (persistem tudo via gravarArquivo()).
+    public boolean salvarClientes() {
+        return gravarArquivo();
+    }
+
+    public boolean salvarVendas() {
+        return gravarArquivo();
+    }
+
     public ArrayList<Edificio> listaEdificios(){
         return this.listaEdificios;
     }
@@ -77,13 +95,21 @@ public class DadosRepository {
     }
 
     public boolean anexarCliente(Cliente cliente){
-        //Só o esqueleto para teste
-        return false;
+        if (cliente == null) {
+            return false;
+        }
+
+        this.listaClientes.add(cliente);
+        return gravarArquivo();
     }
 
     public boolean anexarVenda(Venda venda){
-        //Só o esqueleto para teste
-        return false;
+        if (venda == null) {
+            return false;
+        }
+
+        this.listaVendas.add(venda);
+        return gravarArquivo();
     }
 
     public boolean gravarArquivo() {
@@ -109,6 +135,8 @@ public class DadosRepository {
             if (json.isEmpty()) {
                 this.listaVendedores = new ArrayList<>();
                 this.listaEdificios = new ArrayList<>();
+                this.listaClientes = new ArrayList<>();
+                this.listaVendas = new ArrayList<>();
                 return true;
             }
 
@@ -123,6 +151,8 @@ public class DadosRepository {
 
             this.listaVendedores = parseVendedores(objRaiz.getArray("vendedores"));
             this.listaEdificios = parseEdificios(objRaiz.getArray("edificios"));
+            this.listaClientes = parseClientes(objRaiz.getArray("clientes"));
+            this.listaVendas = parseVendas(objRaiz.getArray("vendas"));
 
             return true;
         } catch (Exception e) {
@@ -130,6 +160,8 @@ public class DadosRepository {
             System.out.println("Detalhe: " + e.getMessage());
             this.listaVendedores = new ArrayList<>();
             this.listaEdificios = new ArrayList<>();
+            this.listaClientes = new ArrayList<>();
+            this.listaVendas = new ArrayList<>();
             return false;
         }
     }
@@ -137,11 +169,10 @@ public class DadosRepository {
     private String gerarJson() {
         StringBuilder sb = new StringBuilder();
         sb.append("{");
-        sb.append("\"vendedores\":");
-        sb.append(gerarJsonVendedores(this.listaVendedores));
-        sb.append(",");
-        sb.append("\"edificios\":");
-        sb.append(gerarJsonEdificios(this.listaEdificios));
+        sb.append("\"vendedores\":").append(gerarJsonVendedores(this.listaVendedores));
+        sb.append(",\"edificios\":").append(gerarJsonEdificios(this.listaEdificios));
+        sb.append(",\"clientes\":").append(gerarJsonClientes(this.listaClientes));
+        sb.append(",\"vendas\":").append(gerarJsonVendas(this.listaVendas));
         sb.append("}");
         return sb.toString();
     }
@@ -174,6 +205,95 @@ public class DadosRepository {
             sb.append("\"nome\":\"").append(escape(edificio.getNome())).append("\",");
             sb.append("\"endereco\":\"").append(escape(edificio.getEndereco())).append("\",");
             sb.append("\"andares\":").append(gerarJsonAndares(edificio.getAndares()));
+            sb.append("}");
+        }
+        sb.append("]");
+        return sb.toString();
+    }
+
+    private String gerarJsonClientes(List<Cliente> clientes) {
+        StringBuilder sb = new StringBuilder("[");
+        for (int i = 0; i < clientes.size(); i++) {
+            Cliente cliente = clientes.get(i);
+            if (i > 0) {
+                sb.append(",");
+            }
+
+            sb.append("{");
+            sb.append("\"nome\":\"").append(escape(cliente.getNome())).append("\",");
+            sb.append("\"cpf\":\"").append(escape(cliente.getCpf())).append("\",");
+            sb.append("\"rg\":\"").append(escape(cliente.getRg())).append("\",");
+            String estadoCivilNome = (cliente.getEstadoCivil() == null ? EstadoCivil.SOLTEIRO : cliente.getEstadoCivil()).name();
+            sb.append("\"estadoCivil\":\"").append(estadoCivilNome).append("\"");
+
+            if (cliente.getConjuge() != null) {
+                Conjuge conjuge = cliente.getConjuge();
+                sb.append(",\"conjuge\":{");
+                sb.append("\"nome\":\"").append(escape(conjuge.getNome())).append("\",");
+                sb.append("\"cpf\":\"").append(escape(conjuge.getCpf())).append("\",");
+                sb.append("\"rg\":\"").append(escape(conjuge.getRg())).append("\"");
+                sb.append("}");
+            }
+
+            sb.append("}");
+        }
+        sb.append("]");
+        return sb.toString();
+    }
+
+    private String gerarJsonVendas(List<Venda> vendas) {
+        StringBuilder sb = new StringBuilder("[");
+        for (int i = 0; i < vendas.size(); i++) {
+            Venda venda = vendas.get(i);
+            if (i > 0) {
+                sb.append(",");
+            }
+
+            sb.append("{");
+
+            // VENDEDOR
+            sb.append("\"vendedor\":{");
+            sb.append("\"idVendedor\":").append(venda.getVendedor().getIdVendedor()).append(",");
+            sb.append("\"nome\":\"").append(escape(venda.getVendedor().getNome())).append("\"");
+            sb.append("},");
+
+            // CLIENTE
+            sb.append("\"cliente\":{");
+            sb.append("\"nome\":\"").append(escape(venda.getCliente().getNome())).append("\",");
+            sb.append("\"cpf\":\"").append(escape(venda.getCliente().getCpf())).append("\",");
+            sb.append("\"rg\":\"").append(escape(venda.getCliente().getRg())).append("\",");
+            String estadoCivilVendaNome = (venda.getCliente().getEstadoCivil() == null ? EstadoCivil.SOLTEIRO : venda.getCliente().getEstadoCivil()).name();
+            sb.append("\"estadoCivil\":\"").append(estadoCivilVendaNome).append("\"");
+
+            if (venda.getCliente().getConjuge() != null) {
+                Conjuge conjuge = venda.getCliente().getConjuge();
+                sb.append(",\"conjuge\":{");
+                sb.append("\"nome\":\"").append(escape(conjuge.getNome())).append("\",");
+                sb.append("\"cpf\":\"").append(escape(conjuge.getCpf())).append("\",");
+                sb.append("\"rg\":\"").append(escape(conjuge.getRg())).append("\"");
+                sb.append("}");
+            }
+
+            sb.append("},");
+
+            // APARTAMENTO
+            Apartamento apt = venda.getApartamento();
+            sb.append("\"apartamento\":{");
+            sb.append("\"numero\":").append(apt.getNumero()).append(",");
+            sb.append("\"andar\":").append(apt.getAndar()).append(",");
+            sb.append("\"metragem\":").append(apt.getMetragem()).append(",");
+            sb.append("\"quantidadeDeQuartos\":").append(apt.getQuantidadeDeQuartos()).append(",");
+            sb.append("\"quantidadeDeBanheiros\":").append(apt.getQuantidadeDeBanheiros()).append(",");
+            sb.append("\"valorDeVenda\":").append(apt.getValorDeVenda()).append(",");
+            sb.append("\"valorSinal\":").append(apt.getValorSinal()).append(",");
+            sb.append("\"status\":\"").append(apt.getStatus().name()).append("\"");
+            sb.append("},");
+
+            // DADOS DE VENDA
+            String data = venda.getDataDaVenda() == null ? "" : venda.getDataDaVenda().toString();
+            sb.append("\"dataDaVenda\":\"").append(escape(data)).append("\",");
+            sb.append("\"valorFinal\":").append(venda.getValorFinal());
+
             sb.append("}");
         }
         sb.append("]");
@@ -286,6 +406,120 @@ public class DadosRepository {
         return resultado;
     }
 
+    private ArrayList<Cliente> parseClientes(JsonArray arr) {
+        ArrayList<Cliente> resultado = new ArrayList<>();
+        if (arr == null) {
+            return resultado;
+        }
+
+        for (JsonValue item : arr.values) {
+            JsonObject obj = asObject(item);
+
+            String nome = obj.getString("nome", "");
+            String cpf = obj.getString("cpf", "");
+            String rg = obj.getString("rg", "");
+
+            String estadoCivilStr = obj.getString("estadoCivil", EstadoCivil.SOLTEIRO.name());
+            EstadoCivil estadoCivil;
+            try {
+                estadoCivil = EstadoCivil.valueOf(estadoCivilStr);
+            } catch (IllegalArgumentException ignored) {
+                estadoCivil = EstadoCivil.SOLTEIRO;
+            }
+
+            JsonObject objConjuge = obj.getObject("conjuge");
+            if (objConjuge != null) {
+                Conjuge conjuge = new Conjuge(
+                        objConjuge.getString("nome", ""),
+                        objConjuge.getString("cpf", ""),
+                        objConjuge.getString("rg", "")
+                );
+                resultado.add(new Cliente(nome, cpf, rg, estadoCivil, conjuge));
+            } else {
+                resultado.add(new Cliente(nome, cpf, rg, estadoCivil));
+            }
+        }
+
+        return resultado;
+    }
+
+    private ArrayList<Venda> parseVendas(JsonArray arr) {
+        ArrayList<Venda> resultado = new ArrayList<>();
+        if (arr == null) {
+            return resultado;
+        }
+
+        for (JsonValue item : arr.values) {
+            JsonObject obj = asObject(item);
+
+            JsonObject objVendedor = obj.getObject("vendedor");
+            JsonObject objCliente = obj.getObject("cliente");
+            JsonObject objApartamento = obj.getObject("apartamento");
+
+            if (objVendedor == null || objCliente == null || objApartamento == null) {
+                continue;
+            }
+
+            Vendedor vendedor = new Vendedor(
+                    objVendedor.getInt("idVendedor", 0),
+                    objVendedor.getString("nome", "")
+            );
+
+            String nomeCli = objCliente.getString("nome", "");
+            String cpfCli = objCliente.getString("cpf", "");
+            String rgCli = objCliente.getString("rg", "");
+            String estadoCivilStr = objCliente.getString("estadoCivil", EstadoCivil.SOLTEIRO.name());
+            EstadoCivil estadoCivil;
+            try {
+                estadoCivil = EstadoCivil.valueOf(estadoCivilStr);
+            } catch (IllegalArgumentException ignored) {
+                estadoCivil = EstadoCivil.SOLTEIRO;
+            }
+
+            JsonObject objConjuge = objCliente.getObject("conjuge");
+            Cliente cliente;
+            if (objConjuge != null) {
+                Conjuge conjuge = new Conjuge(
+                        objConjuge.getString("nome", ""),
+                        objConjuge.getString("cpf", ""),
+                        objConjuge.getString("rg", "")
+                );
+                cliente = new Cliente(nomeCli, cpfCli, rgCli, estadoCivil, conjuge);
+            } else {
+                cliente = new Cliente(nomeCli, cpfCli, rgCli, estadoCivil);
+            }
+
+            Apartamento apt = new Apartamento(
+                    objApartamento.getInt("numero", 0),
+                    objApartamento.getInt("andar", 0),
+                    objApartamento.getDouble("metragem", 0.0),
+                    objApartamento.getInt("quantidadeDeQuartos", 0),
+                    objApartamento.getInt("quantidadeDeBanheiros", 0),
+                    objApartamento.getDouble("valorDeVenda", 0.0)
+            );
+            apt.setValorSinal(objApartamento.getDouble("valorSinal", 0.0));
+            String status = objApartamento.getString("status", StatusApartamento.DISPONIVEL.name());
+            try {
+                apt.setStatusApartamento(StatusApartamento.valueOf(status));
+            } catch (IllegalArgumentException ignored) {
+                apt.setStatusApartamento(StatusApartamento.DISPONIVEL);
+            }
+
+            String dataStr = obj.getString("dataDaVenda", "");
+            LocalDate dataDaVenda;
+            try {
+                dataDaVenda = dataStr.isEmpty() ? LocalDate.now() : LocalDate.parse(dataStr);
+            } catch (Exception ignored) {
+                dataDaVenda = LocalDate.now();
+            }
+
+            double valorFinal = obj.getDouble("valorFinal", 0.0);
+            resultado.add(new Venda(vendedor, apt, cliente, dataDaVenda, valorFinal));
+        }
+
+        return resultado;
+    }
+
     private JsonObject asObject(JsonValue value) {
         if (!(value instanceof JsonObject)) {
             throw new IllegalArgumentException("Item esperado como objeto JSON");
@@ -356,6 +590,14 @@ public class DadosRepository {
             JsonValue value = values.get(key);
             if (value instanceof JsonArray) {
                 return (JsonArray) value;
+            }
+            return null;
+        }
+
+        private JsonObject getObject(String key) {
+            JsonValue value = values.get(key);
+            if (value instanceof JsonObject) {
+                return (JsonObject) value;
             }
             return null;
         }
