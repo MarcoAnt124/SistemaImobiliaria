@@ -57,6 +57,10 @@ public class SubMenus {
                     pausar();
                     break;
 
+                case 0:
+                    System.out.println("Saindo...");
+                    break;
+
                 default:
                     System.out.println("Opção Inválida!!!");
                     break;
@@ -185,9 +189,9 @@ public class SubMenus {
         int totalAndares = scan.nextInt();
 
         // Coleta manual dos dados de cada unidade
+        System.out.print("Apartamentos por Andar: ");
         for (int i = 1; i <= totalAndares; i++) {
             limparConsole();
-            System.out.print("Apartamentos por Andar: ");
             int totalAptos = scan.nextInt();
             for (int j = 1; j <= totalAptos; j++) {
                 int numeroApto = (i * 100) + j;
@@ -702,6 +706,9 @@ public class SubMenus {
     }
 
     private void limparConsole() {
+        for (int i = 0; i < 50; i++) {
+            System.out.println();
+        }
         // \033[H move o cursor para o início e \033[2J limpa a tela
         System.out.print("\033[H\033[2J");
         System.out.flush();
