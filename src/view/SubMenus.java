@@ -187,12 +187,14 @@ public class SubMenus {
 
         System.out.print("Total de Andares: ");
         int totalAndares = scan.nextInt();
+        scan.nextLine();
 
         // Coleta manual dos dados de cada unidade
+        limparConsole();
         System.out.print("Apartamentos por Andar: ");
+        int totalAptos = scan.nextInt();
+        scan.nextLine();
         for (int i = 1; i <= totalAndares; i++) {
-            limparConsole();
-            int totalAptos = scan.nextInt();
             for (int j = 1; j <= totalAptos; j++) {
                 int numeroApto = (i * 100) + j;
                 System.out.println("\nConfigurando Unidade " + numeroApto + ":");
