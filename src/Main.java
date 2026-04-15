@@ -1,3 +1,4 @@
+import model.Vendedor;
 import repository.DadosRepository;
 import service.AutenticacaoService;
 import service.ImobiliariaService;
@@ -10,6 +11,7 @@ import java.util.Scanner;
 public class Main {
     public static void main(String[] args) {
         DadosRepository repository = new DadosRepository();
+        repository.anexarVendedor(new Vendedor(666, "ADM"));
         AutenticacaoService autenticacaoService = new AutenticacaoService(repository);
         ImobiliariaService imobiliariaService = new ImobiliariaService(repository, autenticacaoService);
         Validar validar = new Validar();

@@ -5,6 +5,9 @@ import service.AutenticacaoService;
 import service.ImobiliariaService;
 import validation.Validar;
 
+import javax.naming.ldap.UnsolicitedNotification;
+import java.net.SocketOption;
+import java.net.SocketTimeoutException;
 import java.util.Scanner;
 
 public class SubMenus {
@@ -33,6 +36,7 @@ public class SubMenus {
             System.out.println("2 - Cadastrar novo Edificio");
             System.out.println("3 - Consultar Apartamento Especifico");
             System.out.println("4 - Alterar dados de Apartamento");
+            System.out.println("5 - Adicionar Apartamento no Edificio");
             System.out.println("0 - Sair");
             System.out.print("Escolha: ");
 
@@ -55,6 +59,10 @@ public class SubMenus {
                 case 4:
                     alterarDadosApartamento();
                     pausar();
+                    break;
+
+                case 5:
+                    adicionarApartamento();
                     break;
 
                 case 0:
@@ -85,6 +93,7 @@ public class SubMenus {
 
             op = scan.nextInt();
             scan.nextLine(); // Limpa o buffer
+
 
             switch(op) {
                 case 1:
@@ -208,9 +217,8 @@ public class SubMenus {
     private void cadastrarEdificio() {
 
         System.out.println("\n--- CADASTRO DE EDIFÍCIO ---");
-        System.out.print("ID: ");
-        int id = scan.nextInt();
-        scan.nextLine();
+        int id = service.getIDgenerator();
+        service.setIDgenerator(service.getIDgenerator()+1);
 
         System.out.print("Nome: ");
         String nome = scan.nextLine();
@@ -254,6 +262,17 @@ public class SubMenus {
         service.salvarEdificio(edificio);
         System.out.println("\n[SUCESSO] Edifício cadastrado.");
         pausar();
+    }
+
+    private void adicionarApartamento(){
+        int idED;
+        System.out.println("Insira o ID do edificio que deseja adicionar o apartamento:");
+        idED = scan.nextInt();
+
+        Edificio ed = service.buscarEdificioPorId(idED);
+
+
+
     }
 
     public void consultarApartamento() {

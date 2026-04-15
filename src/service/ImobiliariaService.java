@@ -7,6 +7,7 @@ import java.util.ArrayList;
 public class ImobiliariaService {
     private DadosRepository dados;
     private AutenticacaoService autenticacaoService;
+    private int IDgenerator;
 
     //TODO: criar método de processamento de venda
     //TODO: criar um método de busca de informações
@@ -14,6 +15,15 @@ public class ImobiliariaService {
     public ImobiliariaService(DadosRepository dados, AutenticacaoService autenticacaoService) {
         this.dados = dados;
         this.autenticacaoService = autenticacaoService;
+        this.IDgenerator = buscaIdInicial();
+    }
+
+    public int getIDgenerator() {
+        return IDgenerator;
+    }
+
+    public void setIDgenerator(int IDgenerator) {
+        this.IDgenerator = IDgenerator;
     }
 
     public boolean verificarStatusDisponivel(Apartamento apt){
@@ -238,6 +248,7 @@ public class ImobiliariaService {
 
         return null;
     }
+
     public String gerarRelatorioCliente(){
         ArrayList<Cliente> listaCliente = dados.getListaClientes();
         StringBuilder sb = new StringBuilder();
@@ -275,8 +286,17 @@ public class ImobiliariaService {
         return sb.toString();
     }
 
-
     public boolean fecharNegocio(Venda venda){;
         return adicionarVenda(venda);
+    }
+
+    private int buscaIdInicial(){
+        ArrayList<Edificio> listaEd = dados.getListaEdificio();
+        int maiorID = 0;
+
+        for(Edificio edAtual : listaEd){
+            if(edAtual.getId() > maiorID) maiorID = edAtual.getId();
+        }
+        return maiorID;
     }
 }
