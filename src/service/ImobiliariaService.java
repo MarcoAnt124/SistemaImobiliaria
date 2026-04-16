@@ -132,7 +132,24 @@ public class ImobiliariaService {
         return novoEdificio;
     }
 
-    public void vincularApartamento(Edificio edificio, int numAndar,int numApt, double area, double preco, int qtdApts, int qtdQuartos, int qtdBanheiros){
+
+    public int gerarNumApartamento(Andar andarApt){
+
+        int numPrevisto = (100 * andarApt.getNumero());
+
+        if(andarApt.getApartamentos().isEmpty()){
+            return numPrevisto+1;
+        } else {
+            int maiorNumApt = 0;
+            for(Apartamento aptAtual : andarApt.getApartamentos()){
+                if(aptAtual.getNumero() > maiorNumApt) maiorNumApt = aptAtual.getNumero();
+            }
+            return maiorNumApt+1;
+        }
+    }
+
+    // Busca o andar; se não achar, cria um novo e pendura o apto nele
+    public void vincularApartamento(Edificio edificio, int numAndar,double area, double preco, int qtdQuartos, int qtdBanheiros){
         Andar novoAndar = null;
         for(Andar andarAtual : edificio.getAndares()){
             if(andarAtual.getNumero() == numAndar){
@@ -142,9 +159,11 @@ public class ImobiliariaService {
         }
 
         if(novoAndar == null){
-            novoAndar = new Andar(numAndar, qtdApts);
+            novoAndar = new Andar(numAndar);
             edificio.getAndares().add(novoAndar);
         }
+
+        int numApt = gerarNumApartamento(novoAndar);
 
         Apartamento novoApt = new Apartamento(numApt, novoAndar.getNumero(), area,qtdQuartos, qtdBanheiros, preco);
         novoAndar.getApartamentos().add(novoApt);

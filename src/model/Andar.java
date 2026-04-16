@@ -4,15 +4,13 @@ import java.util.ArrayList;
 
 public class Andar {
     private int numero;
-    private int quantidadeDeApartamentos;
     private ArrayList<Apartamento> apartamentos;
 
     //TODO: Criar getters e setters
 
 
-    public Andar(int numero, int quantidadeDeApartamentos) {
+    public Andar(int numero) {
         this.numero = numero;
-        this.quantidadeDeApartamentos = quantidadeDeApartamentos;
         this.apartamentos = new ArrayList<Apartamento>();
     }
 
@@ -25,12 +23,9 @@ public class Andar {
     }
 
     public int getQuantidadeDeApartamentos() {
-        return quantidadeDeApartamentos;
+        return this.getApartamentos().size();
     }
 
-    public void setQuantidadeDeApartamentos(int quantidadeDeApartamentos) {
-        this.quantidadeDeApartamentos = quantidadeDeApartamentos;
-    }
 
     public ArrayList<Apartamento> getApartamentos() {
         return apartamentos;

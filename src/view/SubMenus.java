@@ -229,35 +229,6 @@ public class SubMenus {
         // Service inicia a criação
         Edificio edificio = service.iniciarNovoEdificio(id, nome, endereco);
 
-        System.out.print("Total de Andares: ");
-        int totalAndares = scan.nextInt();
-        scan.nextLine();
-
-        // Coleta manual dos dados de cada unidade
-        limparConsole();
-        System.out.print("Apartamentos por Andar: ");
-        int totalAptos = scan.nextInt();
-        scan.nextLine();
-        for (int i = 1; i <= totalAndares; i++) {
-            for (int j = 1; j <= totalAptos; j++) {
-                int numeroApto = (i * 100) + j;
-                System.out.println("\nConfigurando Unidade " + numeroApto + ":");
-
-                System.out.print("   Área (m²): ");
-                double area = scan.nextDouble();
-                System.out.print("   Preço (R$): ");
-                double preco = scan.nextDouble();
-                System.out.print("   Quantidade de Quartos: ");
-                int qtdQuartos = scan.nextInt();
-                System.out.print("   Quantidade de Banheiros: ");
-                int qtdBanheiros = scan.nextInt();
-
-                // Service processa a montagem do objeto
-                service.vincularApartamento(edificio, i, numeroApto, area, preco, totalAptos, qtdQuartos, qtdBanheiros);
-            }
-        }
-        scan.nextLine();
-        limparConsole();
         // Service finaliza salvando no repositório
         service.salvarEdificio(edificio);
         System.out.println("\n[SUCESSO] Edifício cadastrado.");
@@ -271,7 +242,40 @@ public class SubMenus {
 
         Edificio ed = service.buscarEdificioPorId(idED);
 
+        if(ed == null){
+            System.out.println("EDIFICIO NÃO ENCONTRADO!!!");
+            return;
+        }
 
+        int numAndar;
+
+        System.out.println("Insira o andar que deseja inserir o apartamento: ");
+        numAndar = scan.nextInt();
+        scan.nextLine();
+
+            Apartamento aptNovo;
+
+            System.out.println("Insira a metragem(m²) do apartamento: ");
+            double metragem = scan.nextDouble();
+            scan.nextLine();
+
+            System.out.println("Insira a quantidade de quartos: ");
+            int qtdQuartos = scan.nextInt();
+            scan.nextLine();
+
+            System.out.println("Insira a quantidade de banheiros: ");
+            int qtdBanheiros = scan.nextInt();
+            scan.nextLine();
+
+            System.out.println("Insira o valor do apartamento: ");
+            double precoApt = scan.nextDouble();
+            scan.nextLine();
+
+            service.vincularApartamento(ed, numAndar, metragem, precoApt, qtdQuartos, qtdBanheiros );
+
+            service.getDados().gravarArquivo();
+
+        System.out.println("\n[SUCESSO] Apartamento adicionado ao edificio !");
 
     }
 
