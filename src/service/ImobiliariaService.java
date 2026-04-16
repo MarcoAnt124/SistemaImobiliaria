@@ -15,7 +15,7 @@ public class ImobiliariaService {
     public ImobiliariaService(DadosRepository dados, AutenticacaoService autenticacaoService) {
         this.dados = dados;
         this.autenticacaoService = autenticacaoService;
-        this.IDgenerator = buscaIdInicial();
+        this.IDgenerator = buscaIdInicial()+1;
     }
 
     public int getIDgenerator() {
