@@ -382,8 +382,7 @@ public class DadosRepository {
                 for (JsonValue andarValue : andaresArr.values) {
                     JsonObject objAndar = asObject(andarValue);
                     int numeroAndar = objAndar.getInt("numero", 0);
-                    int qtdApt = objAndar.getInt("quantidadeDeApartamentos", 0);
-                    Andar andar = new Andar(numeroAndar, qtdApt);// remover o "qtdApt"
+                    Andar andar = new Andar(numeroAndar);
 
                     JsonArray aptosArr = objAndar.getArray("apartamentos");
                     if (aptosArr != null) {
