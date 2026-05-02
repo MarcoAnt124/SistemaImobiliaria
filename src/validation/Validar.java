@@ -8,47 +8,53 @@ public class Validar {
         //CPFs são aceitos tanto incluindo pontos e hífens ("123.456.789-10") quanto apenas os dígitos ("12345678910").
         //O método deve validar ambos os formatos corretamente.
 
+        // if (cpf == null) {
+        //     return false;
+        // }
+
+        // String digits = cpf.replaceAll("\\D", "");
+        // if (digits.length() != 11) {
+        //     return false;
+        // }
+
+        // // Números de CPF com todos dígitos iguais são inválidos
+        // if (digits.matches("(\\d)\\1{10}")) {
+        //     return false;
+        // }
+
+        // int[] valores = new int[11];
+        // for (int i = 0; i < 11; i++) {
+        //     valores[i] = digits.charAt(i) - '0';
+        // }
+
+        // // Primeiro dígito verificador
+        // int soma = 0;
+        // for (int i = 0; i < 9; i++) {
+        //     soma += valores[i] * (10 - i);
+        // }
+        // int resto = soma % 11;
+        // int digito1 = (resto < 2) ? 0 : 11 - resto;
+        // if (valores[9] != digito1) {
+        //     return false;
+        // }
+
+        // // Segundo dígito verificador
+        // soma = 0;
+        // for (int i = 0; i < 10; i++) {
+        //     soma += valores[i] * (11 - i);
+        // }
+        // resto = soma % 11;
+        // int digito2 = (resto < 2) ? 0 : 11 - resto;
+        // if (valores[10] != digito2) {
+        //     return false;
+        // }
+
+        // return true;
+
+        // Aceita qualquer CPF em qualquer formato, desde que não seja nulo
         if (cpf == null) {
             return false;
         }
-
-        String digits = cpf.replaceAll("\\D", "");
-        if (digits.length() != 11) {
-            return false;
-        }
-
-        // Números de CPF com todos dígitos iguais são inválidos
-        if (digits.matches("(\\d)\\1{10}")) {
-            return false;
-        }
-
-        int[] valores = new int[11];
-        for (int i = 0; i < 11; i++) {
-            valores[i] = digits.charAt(i) - '0';
-        }
-
-        // Primeiro dígito verificador
-        int soma = 0;
-        for (int i = 0; i < 9; i++) {
-            soma += valores[i] * (10 - i);
-        }
-        int resto = soma % 11;
-        int digito1 = (resto < 2) ? 0 : 11 - resto;
-        if (valores[9] != digito1) {
-            return false;
-        }
-
-        // Segundo dígito verificador
-        soma = 0;
-        for (int i = 0; i < 10; i++) {
-            soma += valores[i] * (11 - i);
-        }
-        resto = soma % 11;
-        int digito2 = (resto < 2) ? 0 : 11 - resto;
-        if (valores[10] != digito2) {
-            return false;
-        }
-
         return true;
     }
 

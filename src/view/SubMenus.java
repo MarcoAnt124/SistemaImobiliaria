@@ -37,6 +37,7 @@ public class SubMenus {
             System.out.println("3 - Consultar Apartamento Especifico");
             System.out.println("4 - Alterar dados de Apartamento");
             System.out.println("5 - Adicionar Apartamento no Edificio");
+            System.out.println("6 - Atualizar status de Apartamento");
             System.out.println("0 - Sair");
             System.out.print("Escolha: ");
 
@@ -64,6 +65,9 @@ public class SubMenus {
                 case 5:
                     adicionarApartamento();
                     break;
+
+                case 6:
+                    atualizarStatusApartamento();
 
                 case 0:
                     System.out.println("Saindo...");
@@ -168,14 +172,19 @@ public class SubMenus {
             return;
         }
 
-        System.out.println("Insira a quantia do desconto:");
-        double desconto = scan.nextDouble();
-        scan.nextLine();
+        double desconto = 0;
+        System.out.println("Deseja aplicar desconto na venda? (S/N):");
+        String op = scan.nextLine();
+        if(op.equals("S")) {
+            System.out.println("Insira a quantia do desconto:");
+            desconto = scan.nextDouble();
+            scan.nextLine();
 
-        if (!validar.validarDesconto(desconto)) {
-            System.out.println("[ERRO] Desconto inválido. Informe um percentual > 0.");
-            pausar();
-            return;
+            if (!validar.validarDesconto(desconto)) {
+                System.out.println("[ERRO] Desconto inválido. Informe um percentual > 0.");
+                pausar();
+                return;
+            }
         }
 
         if (autenticacaoService.getVendedorAtual() == null) {
@@ -214,7 +223,8 @@ public class SubMenus {
         }
     }
 
-    private void cadastrarEdificio() {
+    private void cadastrarEdificio()
+    {
 
         System.out.println("\n--- CADASTRO DE EDIFÍCIO ---");
         int id = service.getIDgenerator();
@@ -337,8 +347,7 @@ public class SubMenus {
         pausar();
     }
 
-    private void alterarDadosApartamento(){
-
+    public Apartamento encontrarApartamento(){
         //Selecionar Edifício
         System.out.println(service.gerarListaSimplesEdificios());
         System.out.print("ID do Edifício: ");
@@ -347,7 +356,7 @@ public class SubMenus {
 
         if (ed == null) {
             System.out.println("[ERRO] Edifício não encontrado.");
-            return;
+            return null;
         }
 
         limparConsole();
@@ -363,7 +372,7 @@ public class SubMenus {
 
         if (andar == null) {
             System.out.println("[ERRO] Andar não encontrado.");
-            return;
+            return null;
         }
 
         limparConsole();
@@ -372,15 +381,60 @@ public class SubMenus {
         for (Apartamento a : andar.getApartamentos()) {
             System.out.print("[" + a.getNumero() + "] ");
         }
-        System.out.print("\nNúmero do Apartamento para editar: ");
+        System.out.print("\nNúmero do Apartamento: ");
         int numApto = scan.nextInt();
 
         Apartamento apto = service.buscarApartamentoNoAndar(andar, numApto);
 
         if (apto == null) {
             System.out.println("[ERRO] Apartamento não encontrado.");
+            return null;
+        }
+
+        return apto;
+    }
+
+    public void atualizarStatusApartamento(){
+
+        Apartamento aptAtualizar = encontrarApartamento();
+
+        if(aptAtualizar == null){
+            System.out.println("Apartamento não encontrado!!!");
+            pausar();
             return;
         }
+
+        System.out.println();
+
+
+    }
+
+    public String formatarConfirmacaoImovel(Edificio ed, Apartamento apt) {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("\n====================================================\n");
+        sb.append("             CONFIRMAÇÃO DO IMÓVEL\n");
+        sb.append("====================================================\n");
+
+        // Dados do Edifício
+        sb.append(String.format(" Edifício: %s\n", ed.getNome().toUpperCase()));
+        sb.append(String.format(" Endereço: %s\n", ed.getEndereco()));
+
+        sb.append("----------------------------------------------------\n");
+
+        // Dados da Unidade
+        sb.append(String.format(" Unidade:  Apto %d\n", apt.getNumero()));
+        sb.append(String.format(" Andar:   %dº Andar\n", apt.getAndar()));
+        sb.append(String.format(" Valor:    R$ %,.2f\n", apt.getValorDeVenda()));
+
+        sb.append("====================================================\n");
+
+        return sb.toString();
+    }
+
+    private void alterarDadosApartamento(){
+
+        Apartamento apto = encontrarApartamento();
 
         menuAlteracao(apto);
     }

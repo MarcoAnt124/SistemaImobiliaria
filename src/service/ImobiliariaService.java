@@ -128,8 +128,7 @@ public class ImobiliariaService {
     }
 
     public Edificio iniciarNovoEdificio(int id, String nome, String endereco){
-        Edificio novoEdificio = new Edificio(id, nome, endereco);
-        return novoEdificio;
+        return new Edificio(id, nome, endereco);
     }
 
 
