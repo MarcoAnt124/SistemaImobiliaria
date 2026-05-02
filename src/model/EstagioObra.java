@@ -1,0 +1,10 @@
+package model;
+
+public enum EstagioObra {
+    LANCAMENTO,
+    CONSTRUCAO_INICIADA,
+    CONSTRUCAO_EM_50_PORCENTO,
+    CONSTRUCAO_FINALIZADA,
+    POS_OBRA,
+    ACABAMENTO;
+}
