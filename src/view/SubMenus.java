@@ -10,6 +10,8 @@ import java.net.SocketOption;
 import java.net.SocketTimeoutException;
 import java.util.Scanner;
 
+//alterar as funções das linhas 619 e 460, caso houver alguma dúvida é só perguntar no grupo ou no privado(Marco), caso precise de alguma função que não exista no service adicione um comentário e explique o que ela precisa fazer, se caso precisar dela para o código funcionar crie um esqueleto que retorna null para testes
+
 public class SubMenus {
     private ImobiliariaService service;
     private Validar validar;
@@ -247,6 +249,7 @@ public class SubMenus {
 
     private void adicionarApartamento(){
         int idED;
+        System.out.println(service.gerarListaSimplesEdificios());
         System.out.println("Insira o ID do edificio que deseja adicionar o apartamento:");
         idED = scan.nextInt();
 
@@ -403,9 +406,13 @@ public class SubMenus {
             pausar();
             return;
         }
+        Edificio ed = service.procurarEdificioApartamento(aptAtualizar);
 
-        System.out.println();
+        System.out.println(formatarConfirmacaoImovel(ed, aptAtualizar));
+        System.out.println("Este é o apartamento que deseja reservar? (S/N):");
+        String op = scan.nextLine();
 
+        //Finalizar a reserva do edificio
 
     }
 
@@ -450,7 +457,7 @@ public class SubMenus {
 
             // Exibe o interessado apenas se estiver reservado
             if (apt.getStatus() == StatusApartamento.RESERVADO) {
-                String interessado = (apt.getCpfInteressado() == null || apt.getCpfInteressado().isEmpty())
+                String interessado = (apt.getCpfInteressado() == null || apt.getCpfInteressado().isEmpty()) // alterar esta parte para se adequar a classe Cliente
                         ? "NÃO VINCULADO" : apt.getCpfInteressado();
                 System.out.printf("    > Interessado | CPF: %s\n", interessado);
             }
@@ -609,7 +616,7 @@ public class SubMenus {
                             aptAtual.getMetragem(),
                             aptAtual.getValorDeVenda(),
                             aptAtual.getValorSinal(),
-                            (aptAtual.getCpfInteressado() == null || aptAtual.getCpfInteressado().isEmpty() ? "NÃO INFORMADO" : aptAtual.getCpfInteressado())
+                            (aptAtual.getCpfInteressado() == null || aptAtual.getCpfInteressado().isEmpty() ? "NÃO INFORMADO" : aptAtual.getCpfInteressado()) //alterar esta parte para se adequar a classe cliente
                     );
                     ctd++;
                 }

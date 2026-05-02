@@ -293,7 +293,7 @@ public class DadosRepository {
             sb.append("\"quantidadeDeBanheiros\":").append(apt.getQuantidadeDeBanheiros()).append(",");
             sb.append("\"valorDeVenda\":").append(apt.getValorDeVenda()).append(",");
             sb.append("\"valorSinal\":").append(apt.getValorSinal()).append(",");
-            sb.append("\"cpfInteressado\":\"").append(escape(apt.getCpfInteressado())).append("\",");
+            sb.append("\"cpfInteressado\":\"").append(escape(apt.getCpfInteressado())).append("\","); // alterar esta parte para armazenar um objeto do tipo Cliente
             StatusApartamento aptStatus = (apt.getStatus() == null ? StatusApartamento.DISPONIVEL : apt.getStatus());
             sb.append("\"status\":\"").append(aptStatus.name()).append("\"");
             sb.append("},");
@@ -341,7 +341,7 @@ public class DadosRepository {
             sb.append("\"quantidadeDeBanheiros\":").append(apt.getQuantidadeDeBanheiros()).append(",");
             sb.append("\"valorDeVenda\":").append(apt.getValorDeVenda()).append(",");
             sb.append("\"valorSinal\":").append(apt.getValorSinal()).append(",");
-            sb.append("\"cpfInteressado\":\"").append(escape(apt.getCpfInteressado())).append("\",");
+            sb.append("\"cpfInteressado\":\"").append(escape(apt.getCpfInteressado())).append("\",");// alterar esta parte para armazenar um objeto do tipo Cliente
             sb.append("\"status\":\"").append(apt.getStatus().name()).append("\"");
             sb.append("}");
         }

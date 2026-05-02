@@ -30,6 +30,19 @@ public class ImobiliariaService {
         return apt.getStatus() == StatusApartamento.DISPONIVEL;
     }
 
+    public Edificio procurarEdificioApartamento(Apartamento apt){
+        for(Edificio edAtual : dados.listaEdificios()){
+            for(Andar andarAtual : edAtual.getAndares()){
+                for(Apartamento aptAtual : andarAtual.getApartamentos()){
+                    if(aptAtual == apt){
+                        return edAtual;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
     public String gerarListaVendas(){
         ArrayList<Venda> listaVendas = dados.getListaVendas();
         StringBuilder sb = new StringBuilder();
@@ -130,7 +143,6 @@ public class ImobiliariaService {
     public Edificio iniciarNovoEdificio(int id, String nome, String endereco){
         return new Edificio(id, nome, endereco);
     }
-
 
     public int gerarNumApartamento(Andar andarApt){
 
