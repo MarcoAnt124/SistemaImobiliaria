@@ -12,6 +12,55 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class DadosRepository {
+    // =========================================================================
+// TODO PARA O RESPONSÁVEL PELO REPOSITÓRIO:
+// =========================================================================
+// Como o Edifício agora possui o atributo 'EstagioObra', precisamos atualizar
+// a leitura e a escrita do JSON para que esse dado não seja perdido ao fechar o sistema.
+//
+// 1. No método 'gerarJsonEdificios(List<Edificio> edificios)':
+//    - Dentro do laço 'for', logo após salvar o "endereco", adicione o novo campo.
+//    - Exemplo: sb.append(",\"estagioObra\":\"").append(edificio.getEstagioObra().name()).append("\"");
+//    - Atenção com as vírgulas e aspas para não quebrar a estrutura do JSON.
+//
+// 2. No método 'parseEdificios(JsonArray arr)':
+//    - Dentro do laço que reconstrói o objeto 'Edificio', recupere a String do JSON.
+//    - Exemplo: String estagioStr = objEdificio.getString("estagioObra", EstagioObra.LANCAMENTO.name());
+//    - Converta essa String de volta para o Enum usando 'EstagioObra.valueOf(estagioStr)'.
+//    - Dica: Coloque a conversão dentro de um bloco try/catch (IllegalArgumentException)
+//      para definir um valor padrão (como LANCAMENTO) caso o arquivo venha vazio ou desatualizado.
+//    - Aplique o valor no objeto: edificio.setEstagioObra(estagioConvertido);
+// =========================================================================
+
+    // =========================================================================
+// TODO: ATUALIZAÇÃO DO MODELO APARTAMENTO (String CPF -> Objeto Cliente)
+// =========================================================================
+// O Apartamento mudou: o método getCpfInteressado() agora retorna um objeto 'Cliente'
+// (e o setCpfInteressado espera um objeto 'Cliente'). Precisamos ajustar o JSON.
+//
+// Temos duas opções de caminhos para seguir aqui no Repositório:
+//
+// OPÇÃO A: Salvar o Cliente inteiro dentro do nó do Apartamento (Igual é feito na Venda)
+// 1. Na Escrita (gerarJsonApartamentos):
+//    - Remova a linha antiga do "cpfInteressado".
+//    - Faça um 'if (apt.getCpfInteressado() != null)'. Se não for nulo, monte o nó
+//      "clienteInteressado": { "nome": "...", "cpf": "..." } igualzinho você fez no nó da Venda.
+// 2. Na Leitura (parseEdificios):
+//    - Em vez de usar objApt.getString(), use objApt.getObject("clienteInteressado").
+//    - Se o objeto existir, reconstrua o Cliente (pegando nome, cpf, rg) e passe
+//      para o apt.setCpfInteressado(clienteReconstruido).
+//
+// OPÇÃO B: Salvar apenas o CPF no JSON (Como uma Chave Estrangeira)
+// 1. Na Escrita (gerarJsonApartamentos):
+//    - Altere para: apt.getCpfInteressado() == null ? "" : apt.getCpfInteressado().getCpf()
+//    - Assim o JSON continua guardando apenas o texto do CPF limpo.
+// 2. Na Leitura (parseEdificios):
+//    - Pegue a String do CPF do JSON: String cpf = objApt.getString("cpfInteressado", "");
+//    - Use a sua 'this.listaClientes' para buscar o objeto Cliente que tem esse CPF.
+//    - Se encontrar o cliente, associe ele: apt.setCpfInteressado(clienteEncontrado);
+// =========================================================================
+
+
     private static final String ARQUIVO_DADOS = "dados_imobiliaria.json";
 
     private ArrayList<Vendedor> listaVendedores;
