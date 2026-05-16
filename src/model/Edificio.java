@@ -6,6 +6,7 @@ public class Edificio {
     private int id;
     private String nome;
     private String endereco;
+    private EstagioObra estagioObra;
     private ArrayList<Andar> andares;
 
     //TODO: Criar getters, setters
@@ -14,6 +15,7 @@ public class Edificio {
         this.id = id;
         this.nome = nome;
         this.endereco = endereco;
+        this.estagioObra = EstagioObra.LANCAMENTO;
         this.andares = new ArrayList<Andar>();
     }
 
@@ -47,6 +49,14 @@ public class Edificio {
 
     public void setAndares(ArrayList<Andar> andares) {
         this.andares = andares;
+    }
+
+    public EstagioObra getEstagioObra() {
+        return estagioObra;
+    }
+
+    public void setEstagioObra(EstagioObra estagioObra) {
+        this.estagioObra = estagioObra;
     }
 }
 
