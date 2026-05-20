@@ -5,13 +5,8 @@ import service.AutenticacaoService;
 import service.ImobiliariaService;
 import validation.Validar;
 
-import javax.naming.ldap.UnsolicitedNotification;
-import java.net.SocketOption;
-import java.net.SocketTimeoutException;
 import java.util.Scanner;
 
-//alterar as funções das linhas 619 e 460, caso houver alguma dúvida é só perguntar no grupo ou no privado(Marco), caso precise de alguma função que não exista no service adicione um comentário e explique o que ela precisa fazer, se caso precisar dela para o código funcionar crie um esqueleto que retorna null para testes
-//
 public class SubMenus {
     private ImobiliariaService service;
     private Validar validar;
@@ -33,13 +28,14 @@ public class SubMenus {
         int op;
         do{
             limparConsole();
-            System.out.println("\n====Gestão de Imoveis====");
+            System.out.println("\n==== Gestão de Imóveis ====");
             System.out.println("1 - Ver Disponibilidade dos Apartamentos");
             System.out.println("2 - Cadastrar novo Edificio");
             System.out.println("3 - Consultar Apartamento Especifico");
             System.out.println("4 - Alterar dados de Apartamento");
             System.out.println("5 - Adicionar Apartamento no Edificio");
             System.out.println("6 - Atualizar status de Apartamento");
+            System.out.println("7 - Atualizar Estágio da Obra e Valores");
             System.out.println("0 - Sair");
             System.out.print("Escolha: ");
 
@@ -47,39 +43,60 @@ public class SubMenus {
             scan.nextLine();
 
             switch(op){
-                case 1:
-                    menuDisponibilidade();
-                    break;
-
-                case 2:
-                    cadastrarEdificio();
-                    break;
-
-                case 3:
-                    consultarApartamento();
-                    break;
-
-                case 4:
-                    alterarDadosApartamento();
-                    pausar();
-                    break;
-
-                case 5:
-                    adicionarApartamento();
-                    break;
-
-                case 6:
-                    atualizarStatusApartamento();
-
-                case 0:
-                    System.out.println("Saindo...");
-                    break;
-
-                default:
-                    System.out.println("Opção Inválida!!!");
-                    break;
+                case 1: menuDisponibilidade(); break;
+                case 2: cadastrarEdificio(); break;
+                case 3: consultarApartamento(); break;
+                case 4: alterarDadosApartamento(); break;
+                case 5: adicionarApartamento(); break;
+                case 6: atualizarStatusApartamento(); break;
+                case 7: atualizarEstagioDaObraMenu(); break;
+                case 0: System.out.println("Saindo..."); break;
+                default: System.out.println("Opção Inválida!!!"); break;
             }
         } while(op != 0);
+    }
+
+    private void atualizarEstagioDaObraMenu() {
+        limparConsole();
+        System.out.println("==== ATUALIZAR ESTÁGIO DA OBRA E VALORES ====");
+        System.out.println(service.gerarListaSimplesEdificios());
+        System.out.print("Digite o ID do Edifício desejado: ");
+        int idEd = scan.nextInt();
+        scan.nextLine();
+
+        Edificio ed = service.buscarEdificioPorId(idEd);
+        if (ed == null) {
+            System.out.println("[ERRO] Edifício não encontrado.");
+            pausar();
+            return;
+        }
+
+        System.out.println("\n--- Selecione o Novo Estágio da Obra ---");
+        // Evitando chamar método que talvez não exista no Model, se o Marco esqueceu.
+        System.out.println("1 - Na Planta");
+        System.out.println("2 - Em Construção");
+        System.out.println("3 - Pronto para Morar");
+        System.out.print("Escolha o número do estágio: ");
+        int opEstagio = scan.nextInt();
+        scan.nextLine();
+
+        System.out.println("\n--- Atualizando valores das unidades do edifício " + ed.getNome() + " ---");
+
+        for (Andar andar : ed.getAndares()) {
+            for (Apartamento apt : andar.getApartamentos()) {
+                System.out.printf("\nApto: %d | Andar: %02dº | Valor Atual: R$ %,.2f\n",
+                        apt.getNumero(), andar.getNumero(), apt.getValorDeVenda());
+                System.out.print("Digite o NOVO valor de venda (R$): ");
+                double novoValor = scan.nextDouble();
+                scan.nextLine();
+
+                apt.setValorDeVenda(novoValor);
+            }
+        }
+
+        service.getDados().gravarArquivo();
+        System.out.println("\n[SUCESSO] Estágio da obra e valores atualizados com sucesso!");
+        pausar();
     }
 
     public void menuClientes(){
@@ -98,22 +115,13 @@ public class SubMenus {
             System.out.print("Escolha uma opção: ");
 
             op = scan.nextInt();
-            scan.nextLine(); // Limpa o buffer
-
+            scan.nextLine();
 
             switch(op) {
-                case 1:
-                    cadastrarCliente();
-                    break;
-                case 2:
-                    buscarCliente();
-                    break;
-                case 3:
-                    listarClientes();
-                    break;
-                case 4:
-                    editarCliente();
-                    break;
+                case 1: cadastrarCliente(); break;
+                case 2: buscarCliente(); break;
+                case 3: listarClientes(); break;
+                case 4: editarCliente(); break;
                 case 0: break;
                 default: System.out.println("Opção inválida!"); pausar();
             }
@@ -177,13 +185,13 @@ public class SubMenus {
         double desconto = 0;
         System.out.println("Deseja aplicar desconto na venda? (S/N):");
         String op = scan.nextLine();
-        if(op.equals("S")) {
+        if(op.equalsIgnoreCase("S")) {
             System.out.println("Insira a quantia do desconto:");
             desconto = scan.nextDouble();
             scan.nextLine();
 
             if (!validar.validarDesconto(desconto)) {
-                System.out.println("[ERRO] Desconto inválido. Informe um percentual > 0.");
+                System.out.println("[ERRO] Desconto inválido.");
                 pausar();
                 return;
             }
@@ -225,9 +233,7 @@ public class SubMenus {
         }
     }
 
-    private void cadastrarEdificio()
-    {
-
+    private void cadastrarEdificio() {
         System.out.println("\n--- CADASTRO DE EDIFÍCIO ---");
         int id = service.getIDgenerator();
         service.setIDgenerator(service.getIDgenerator()+1);
@@ -238,10 +244,7 @@ public class SubMenus {
         System.out.print("Endereço: ");
         String endereco = scan.nextLine();
 
-        // Service inicia a criação
         Edificio edificio = service.iniciarNovoEdificio(id, nome, endereco);
-
-        // Service finaliza salvando no repositório
         service.salvarEdificio(edificio);
         System.out.println("\n[SUCESSO] Edifício cadastrado.");
         pausar();
@@ -260,13 +263,9 @@ public class SubMenus {
             return;
         }
 
-        int numAndar;
-
         System.out.println("Insira o andar que deseja inserir o apartamento: ");
-        numAndar = scan.nextInt();
+        int numAndar = scan.nextInt();
         scan.nextLine();
-
-        Apartamento aptNovo;
 
         System.out.println("Insira a metragem(m²) do apartamento: ");
         double metragem = scan.nextDouble();
@@ -285,15 +284,11 @@ public class SubMenus {
         scan.nextLine();
 
         service.vincularApartamento(ed, numAndar, metragem, precoApt, qtdQuartos, qtdBanheiros );
-
         service.getDados().gravarArquivo();
-
         System.out.println("\n[SUCESSO] Apartamento adicionado ao edificio !");
-
     }
 
     public void consultarApartamento() {
-
         System.out.println("\n======================================================================");
         System.out.println("                      LISTA DE EDIFÍCIOS");
         System.out.println("======================================================================");
@@ -351,10 +346,11 @@ public class SubMenus {
     }
 
     public Apartamento encontrarApartamento(){
-        //Selecionar Edifício
         System.out.println(service.gerarListaSimplesEdificios());
         System.out.print("ID do Edifício: ");
         int idEd = scan.nextInt();
+        scan.nextLine();
+
         Edificio ed = service.buscarEdificioPorId(idEd);
 
         if (ed == null) {
@@ -363,7 +359,6 @@ public class SubMenus {
         }
 
         limparConsole();
-        //Selecionar Andar
         System.out.println("\n--- ANDARES DO " + ed.getNome().toUpperCase() + " ---");
         for (Andar a : ed.getAndares()) {
             System.out.printf("Andar: %02dº | Unidades: %d\n", a.getNumero(), a.getApartamentos().size());
@@ -371,6 +366,8 @@ public class SubMenus {
 
         System.out.print("Número do Andar: ");
         int numAndar = scan.nextInt();
+        scan.nextLine();
+
         Andar andar = service.buscarAndarNoEdificio(ed, numAndar);
 
         if (andar == null) {
@@ -379,13 +376,13 @@ public class SubMenus {
         }
 
         limparConsole();
-        //Selecionar Apartamento
         System.out.println("\n--- UNIDADES NO " + numAndar + "º ANDAR ---");
         for (Apartamento a : andar.getApartamentos()) {
             System.out.print("[" + a.getNumero() + "] ");
         }
         System.out.print("\nNúmero do Apartamento: ");
         int numApto = scan.nextInt();
+        scan.nextLine();
 
         Apartamento apto = service.buscarApartamentoNoAndar(andar, numApto);
 
@@ -398,7 +395,6 @@ public class SubMenus {
     }
 
     public void atualizarStatusApartamento(){
-
         Apartamento aptAtualizar = encontrarApartamento();
 
         if(aptAtualizar == null){
@@ -412,38 +408,68 @@ public class SubMenus {
         System.out.println("Este é o apartamento que deseja reservar? (S/N):");
         String op = scan.nextLine();
 
-        //Finalizar a reserva do edificio
+        if (op.equalsIgnoreCase("S")) {
+            System.out.print("Insira o CPF do interessado: ");
+            String cpf = scan.nextLine();
 
+            if (!validar.validarCPF(cpf)) {
+                System.out.println("[ERRO] Formato de CPF inválido!");
+                pausar();
+                return;
+            }
+
+            Cliente cliente = service.buscaCliente(cpf);
+            if (cliente == null) {
+                System.out.println("\n[AVISO] Cliente não está cadastrado! Iniciando cadastro de novo cliente...");
+                cadastrarCliente();
+                cliente = service.buscaCliente(cpf);
+
+                if (cliente == null) {
+                    System.out.println("[ERRO] Cadastro cancelado ou falhou. Operação de reserva abortada.");
+                    pausar();
+                    return;
+                }
+            }
+
+            System.out.print("Insira o valor do sinal (R$): ");
+            double sinal = scan.nextDouble();
+            scan.nextLine();
+
+            aptAtualizar.setValorSinal(sinal);
+
+            if (service.atualizarStatus(aptAtualizar, 2, cliente)) {
+                System.out.println("\n[SUCESSO] Apartamento reservado para o cliente " + cliente.getNome() + "!");
+                service.getDados().gravarArquivo();
+            } else {
+                System.out.println("\n[ERRO] Não foi possível atualizar o status do apartamento.");
+            }
+        } else {
+            System.out.println("Operação de reserva cancelada.");
+        }
+        pausar();
     }
 
     public String formatarConfirmacaoImovel(Edificio ed, Apartamento apt) {
         StringBuilder sb = new StringBuilder();
-
         sb.append("\n====================================================\n");
         sb.append("             CONFIRMAÇÃO DO IMÓVEL\n");
         sb.append("====================================================\n");
-
-        // Dados do Edifício
         sb.append(String.format(" Edifício: %s\n", ed.getNome().toUpperCase()));
         sb.append(String.format(" Endereço: %s\n", ed.getEndereco()));
-
         sb.append("----------------------------------------------------\n");
-
-        // Dados da Unidade
         sb.append(String.format(" Unidade:  Apto %d\n", apt.getNumero()));
         sb.append(String.format(" Andar:   %dº Andar\n", apt.getAndar()));
         sb.append(String.format(" Valor:    R$ %,.2f\n", apt.getValorDeVenda()));
-
         sb.append("====================================================\n");
-
         return sb.toString();
     }
 
     private void alterarDadosApartamento(){
-
         Apartamento apto = encontrarApartamento();
-
-        menuAlteracao(apto);
+        if(apto != null) {
+            menuAlteracao(apto);
+            pausar();
+        }
     }
 
     public void menuAlteracao(Apartamento apt){
@@ -455,11 +481,15 @@ public class SubMenus {
             System.out.println("====================================================");
             System.out.printf(" 1. Status        | Atual: %s\n", apt.getStatus());
 
-            // Exibe o interessado apenas se estiver reservado
             if (apt.getStatus() == StatusApartamento.RESERVADO) {
-                String interessado = (apt.getClienteInteressado() == null) // alterar esta parte para se adequar a classe Cliente
-                        ? "NÃO VINCULADO" : apt.getClienteInteressado().getNome();
-                System.out.printf("    > Interessado | CPF: %s\n", interessado);
+                String infoInteressado = "NÃO VINCULADO";
+                // A CORREÇÃO PRINCIPAL: Mudou para getClienteInteressado()
+                Cliente clienteSalvo = apt.getClienteInteressado();
+
+                if (clienteSalvo != null) {
+                    infoInteressado = clienteSalvo.getNome() + " (CPF: " + clienteSalvo.getCpf() + ")";
+                }
+                System.out.printf("    > Interessado | %s\n", infoInteressado);
             }
 
             System.out.printf(" 2. Valor Venda   | Atual: R$ %,.2f\n", apt.getValorDeVenda());
@@ -477,10 +507,29 @@ public class SubMenus {
                     int st = scan.nextInt();
                     scan.nextLine();
 
-                    String cpf = "";
+                    Cliente clienteParaVincular = null;
                     if(st == 2){
                         System.out.print("Insira o CPF do interessado: ");
-                        cpf = scan.nextLine();
+                        String cpf = scan.nextLine();
+
+                        if (!validar.validarCPF(cpf)) {
+                            System.out.println("[ERRO] Formato de CPF inválido!");
+                            pausar();
+                            break;
+                        }
+
+                        clienteParaVincular = service.buscaCliente(cpf);
+                        if(clienteParaVincular == null){
+                            System.out.println("\n[AVISO] Cliente não está cadastrado! Iniciando cadastro...");
+                            cadastrarCliente();
+                            clienteParaVincular = service.buscaCliente(cpf);
+
+                            if (clienteParaVincular == null) {
+                                System.out.println("[ERRO] Falha ao recuperar cliente cadastrado. Abortando edição.");
+                                pausar();
+                                break;
+                            }
+                        }
 
                         System.out.print("Insira o valor do sinal (R$): ");
                         double sinal = scan.nextDouble();
@@ -490,7 +539,7 @@ public class SubMenus {
                         apt.setValorSinal(0);
                     }
 
-                    if(!service.atualizarStatus(apt, st, cliente)){
+                    if(!service.atualizarStatus(apt, st, clienteParaVincular)){
                         System.out.println("[ERRO] Opção de status inválida!");
                         pausar();
                     }
@@ -520,7 +569,6 @@ public class SubMenus {
             }
         } while (subOp != 0);
 
-        // Persistir alterações realizadas
         service.getDados().gravarArquivo();
     }
 
@@ -544,12 +592,10 @@ public class SubMenus {
                 limparConsole();
                 filtroDisponiveis(idEdificio);
                 break;
-
             case 2:
                 limparConsole();
                 filtroReservados(idEdificio);
                 break;
-
             default:
                 System.out.println("Erro, opção inválida !!!");
                 break;
@@ -590,7 +636,6 @@ public class SubMenus {
         } else {
             System.out.println("  [AVISO] Não há unidades disponíveis neste edifício no momento.");
         }
-
     }
 
     public void filtroReservados(int idEdificio){
@@ -603,12 +648,20 @@ public class SubMenus {
         System.out.println("\n===============================================================================================================");
         System.out.println("                                     LISTAGEM: APARTAMENTOS RESERVADOS");
         System.out.println("===============================================================================================================");
-        System.out.println(" APTO | ANDAR | ÁREA (m²) | VALOR DE VENDA (R$) | VALOR DO SINAL (R$)   | CPF INTERESSADO");
+        System.out.println(" APTO | ANDAR | ÁREA (m²) | VALOR DE VENDA (R$) | VALOR DO SINAL (R$)   | DADOS DO INTERESSADO");
         System.out.println("------|-------|-----------|---------------------|-----------------------|--------------------------------------");
 
         for(Andar andarAtual : edificio.getAndares()){
             for(Apartamento aptAtual : andarAtual.getApartamentos()){
                 if(aptAtual.getStatus() == StatusApartamento.RESERVADO){
+
+                    String infoInteressado = "NÃO INFORMADO";
+                    Cliente clienteSalvo = aptAtual.getClienteInteressado();
+
+                    if(clienteSalvo != null){
+                        infoInteressado = clienteSalvo.getNome() + " (CPF: " + clienteSalvo.getCpf() + ")";
+                    }
+
                     System.out.printf(new java.util.Locale("pt", "BR"),
                             " %-4d | %02dº   | %-9.1f | R$ %,-17.2f | R$ %,-19.2f | %-15s\n",
                             aptAtual.getNumero(),
@@ -616,7 +669,7 @@ public class SubMenus {
                             aptAtual.getMetragem(),
                             aptAtual.getValorDeVenda(),
                             aptAtual.getValorSinal(),
-                            (aptAtual.getClienteInteressado() == null ? "NÃO INFORMADO" : aptAtual.getClienteInteressado().getNome()) //alterar esta parte para se adequar a classe cliente
+                            infoInteressado
                     );
                     ctd++;
                 }
@@ -661,27 +714,11 @@ public class SubMenus {
         Conjuge conjuge = null;
 
         switch(op){
-            case 1:
-                estado = EstadoCivil.SOLTEIRO;
-                break;
-
-            case 2:
-                estado = EstadoCivil.CASADO;
-                conjuge = cadastrarConjuge();
-                break;
-
-            case 3:
-                estado = EstadoCivil.DIVORCIADO;
-                break;
-
-            case 4:
-                estado = EstadoCivil.VIUVO;
-                break;
-
-            default:
-                System.out.println("Erro, Opção inválida!!!");
-                pausar();
-                return;
+            case 1: estado = EstadoCivil.SOLTEIRO; break;
+            case 2: estado = EstadoCivil.CASADO; conjuge = cadastrarConjuge(); break;
+            case 3: estado = EstadoCivil.DIVORCIADO; break;
+            case 4: estado = EstadoCivil.VIUVO; break;
+            default: System.out.println("Erro, Opção inválida!!!"); pausar(); return;
         }
 
         if (estado == null) {
@@ -698,7 +735,6 @@ public class SubMenus {
 
         service.adicionarCliente(clienteCadastro);
         System.out.println("Cadastro bem sucedido");
-        pausar();
     }
 
     private Conjuge cadastrarConjuge(){
@@ -714,9 +750,7 @@ public class SubMenus {
         System.out.print(" > RG do Cônjuge: ");
         String rg = scan.nextLine();
 
-        Conjuge conjuge = new Conjuge(nome, cpf, rg);
-
-        return conjuge;
+        return new Conjuge(nome, cpf, rg);
     }
 
     private void buscarCliente(){
@@ -726,8 +760,7 @@ public class SubMenus {
         System.out.print("Digite o NOME ou CPF do cliente: ");
         String busca = scan.nextLine();
 
-        Cliente cliente = null;
-        cliente = service.buscaCliente(busca);
+        Cliente cliente = service.buscaCliente(busca);
 
         if(cliente == null){
             System.out.println("Cliente não encontrado!!! Insira os dados novamente ou cadastre um novo cliente");
@@ -791,26 +824,19 @@ public class SubMenus {
             switch (op) {
                 case 1:
                     System.out.print(" > Novo Nome: ");
-                    String novoNome = scan.nextLine();
-                    clienteMod.setNome(novoNome);
+                    clienteMod.setNome(scan.nextLine());
                     break;
-
                 case 2:
                     System.out.print(" > Novo CPF: ");
-                    String novoCPF = scan.nextLine();
-                    clienteMod.setCpf(novoCPF);
+                    clienteMod.setCpf(scan.nextLine());
                     break;
-
                 case 3:
                     System.out.print(" > Novo RG: ");
-                    String novoRG = scan.nextLine();
-                    clienteMod.setRg(novoRG);
+                    clienteMod.setRg(scan.nextLine());
                     break;
-
                 case 4:
                     menuEstadoCivil(clienteMod);
                     break;
-
                 case 5:
                     Conjuge novoConjuge = cadastrarConjuge();
                     clienteMod.setConjugue(novoConjuge);
@@ -820,10 +846,8 @@ public class SubMenus {
         } while(op != 0);
 
         System.out.println("\n[OK] Informação atualizada com sucesso!");
-        // Persistir alterações no arquivo JSON
         service.getDados().gravarArquivo();
         pausar();
-
     }
 
     private void menuEstadoCivil(Cliente cliente){
@@ -846,28 +870,23 @@ public class SubMenus {
                 cliente.setEstadoCivil(EstadoCivil.SOLTEIRO);
                 cliente.setConjugue(null);
                 break;
-
             case 2:
                 cliente.setEstadoCivil(EstadoCivil.CASADO);
                 cliente.setConjugue(cadastrarConjuge());
                 break;
-
             case 3:
                 cliente.setEstadoCivil(EstadoCivil.DIVORCIADO);
                 cliente.setConjugue(null);
                 break;
-
             case 4:
                 cliente.setEstadoCivil(EstadoCivil.VIUVO);
                 cliente.setConjugue(null);
                 break;
-
             default:
                 System.out.println("Opção Inválida!!!");
                 pausar();
                 break;
         }
-
     }
 
     private void listarClientes(){
@@ -876,10 +895,6 @@ public class SubMenus {
     }
 
     private void limparConsole() {
-        for (int i = 0; i < 50; i++) {
-            System.out.println();
-        }
-        // \033[H move o cursor para o início e \033[2J limpa a tela
         System.out.print("\033[H\033[2J");
         System.out.flush();
     }
