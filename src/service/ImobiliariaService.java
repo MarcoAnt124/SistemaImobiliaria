@@ -189,14 +189,15 @@ public class ImobiliariaService {
         StringBuilder sb = new StringBuilder();
 
         sb.append("======================================================================\n");
-        sb.append(String.format(" %-4s | %-25s | %s\n", "ID", "NOME", "ENDEREÇO"));
+        sb.append(String.format(" %-4s | %-25s | %-20s | %s\n", "ID", "NOME", "ENDEREÇO", "ESTÁGIO"));
         sb.append("----------------------------------------------------------------------\n");
 
         for(Edificio edificioAtual : Edificios){
-            sb.append(String.format(" %03d  | %-25s | %s\n",
+            sb.append(String.format(" %03d  | %-25s | %-20s | %s\n",
                     edificioAtual.getId(),
                     edificioAtual.getNome(),
-                    edificioAtual.getEndereco()));
+                    edificioAtual.getEndereco(),
+                    edificioAtual.getEstagioObra()));
         }
 
         sb.append("======================================================================\n");

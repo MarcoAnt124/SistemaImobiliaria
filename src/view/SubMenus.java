@@ -34,7 +34,7 @@ public class SubMenus {
             System.out.println("3 - Consultar Apartamento Especifico");
             System.out.println("4 - Alterar dados de Apartamento");
             System.out.println("5 - Adicionar Apartamento no Edificio");
-            System.out.println("6 - Atualizar status de Apartamento");
+            System.out.println("6 - Reservar / Liberar Apartamento");
             System.out.println("7 - Atualizar Estágio da Obra e Valores");
             System.out.println("0 - Sair");
             System.out.print("Escolha: ");
@@ -72,13 +72,24 @@ public class SubMenus {
         }
 
         System.out.println("\n--- Selecione o Novo Estágio da Obra ---");
-        // Evitando chamar método que talvez não exista no Model, se o Marco esqueceu.
-        System.out.println("1 - Na Planta");
-        System.out.println("2 - Em Construção");
-        System.out.println("3 - Pronto para Morar");
+        EstagioObra[] estagios = EstagioObra.values();
+        for (int i = 0; i < estagios.length; i++) {
+            System.out.println((i + 1) + " - " + estagios[i].name());
+        }
+
         System.out.print("Escolha o número do estágio: ");
         int opEstagio = scan.nextInt();
         scan.nextLine();
+
+        if (opEstagio < 1 || opEstagio > estagios.length) {
+            System.out.println("[ERRO] Opção de estágio inválida.");
+            pausar();
+            return;
+        }
+
+        EstagioObra novoEstagio = estagios[opEstagio - 1];
+
+        service.atualizarEstagioDaObra(idEd, novoEstagio);
 
         System.out.println("\n--- Atualizando valores das unidades do edifício " + ed.getNome() + " ---");
 
@@ -90,7 +101,7 @@ public class SubMenus {
                 double novoValor = scan.nextDouble();
                 scan.nextLine();
 
-                apt.setValorDeVenda(novoValor);
+                service.atualizarValorApartamento(apt, novoValor);
             }
         }
 
@@ -169,11 +180,7 @@ public class SubMenus {
 
         System.out.println("Insira o CPF do Cliente:");
         String cpfCliente = scan.nextLine();
-        if(!validar.validarCPF(cpfCliente)){
-            System.out.println("CPF inválido!!!");
-            pausar();
-            return;
-        }
+
         Cliente clienteAtual = service.buscaCliente(cpfCliente);
 
         if (clienteAtual == null) {
@@ -395,6 +402,7 @@ public class SubMenus {
     }
 
     public void atualizarStatusApartamento(){
+        System.out.println("\n==== RESERVAR / LIBERAR APARTAMENTO ====");
         Apartamento aptAtualizar = encontrarApartamento();
 
         if(aptAtualizar == null){
@@ -405,46 +413,59 @@ public class SubMenus {
         Edificio ed = service.procurarEdificioApartamento(aptAtualizar);
 
         System.out.println(formatarConfirmacaoImovel(ed, aptAtualizar));
-        System.out.println("Este é o apartamento que deseja reservar? (S/N):");
+
+        if (aptAtualizar.getStatus() == StatusApartamento.RESERVADO) {
+            Cliente clienteSalvo = aptAtualizar.getClienteInteressado();
+            String info = (clienteSalvo != null) ? clienteSalvo.getNome() + " (CPF: " + clienteSalvo.getCpf() + ")" : "NÃO INFORMADO";
+            System.out.println(" [!] STATUS ATUAL: Este apartamento já está RESERVADO para: " + info);
+        } else {
+            System.out.println(" [!] STATUS ATUAL: Este apartamento está DISPONÍVEL.");
+        }
+
+        System.out.print("\nDeseja alterar o status deste apartamento? (S/N): ");
         String op = scan.nextLine();
 
         if (op.equalsIgnoreCase("S")) {
-            System.out.print("Insira o CPF do interessado: ");
-            String cpf = scan.nextLine();
-
-            if (!validar.validarCPF(cpf)) {
-                System.out.println("[ERRO] Formato de CPF inválido!");
-                pausar();
-                return;
-            }
-
-            Cliente cliente = service.buscaCliente(cpf);
-            if (cliente == null) {
-                System.out.println("\n[AVISO] Cliente não está cadastrado! Iniciando cadastro de novo cliente...");
-                cadastrarCliente();
-                cliente = service.buscaCliente(cpf);
-
-                if (cliente == null) {
-                    System.out.println("[ERRO] Cadastro cancelado ou falhou. Operação de reserva abortada.");
-                    pausar();
-                    return;
-                }
-            }
-
-            System.out.print("Insira o valor do sinal (R$): ");
-            double sinal = scan.nextDouble();
+            System.out.print("Novo Status (1-DISPONIVEL, 2-RESERVADO): ");
+            int st = scan.nextInt();
             scan.nextLine();
 
-            aptAtualizar.setValorSinal(sinal);
+            Cliente cliente = null;
 
-            if (service.atualizarStatus(aptAtualizar, 2, cliente)) {
-                System.out.println("\n[SUCESSO] Apartamento reservado para o cliente " + cliente.getNome() + "!");
+            if (st == 2) {
+                System.out.print("Insira o CPF do interessado: ");
+                String cpf = scan.nextLine();
+
+                cliente = service.buscaCliente(cpf);
+                if (cliente == null) {
+                    System.out.println("\n[AVISO] Cliente não está cadastrado! Iniciando cadastro de novo cliente...");
+                    cadastrarCliente();
+                    cliente = service.buscaCliente(cpf);
+
+                    if (cliente == null) {
+                        System.out.println("[ERRO] Cadastro cancelado ou falhou. Operação de reserva abortada.");
+                        pausar();
+                        return;
+                    }
+                }
+
+                System.out.print("Insira o valor do sinal (R$): ");
+                double sinal = scan.nextDouble();
+                scan.nextLine();
+
+                aptAtualizar.setValorSinal(sinal);
+            } else if (st == 1) {
+                aptAtualizar.setValorSinal(0);
+            }
+
+            if (service.atualizarStatus(aptAtualizar, st, cliente)) {
+                System.out.println("\n[SUCESSO] Status atualizado com sucesso!");
                 service.getDados().gravarArquivo();
             } else {
                 System.out.println("\n[ERRO] Não foi possível atualizar o status do apartamento.");
             }
         } else {
-            System.out.println("Operação de reserva cancelada.");
+            System.out.println("Operação de alteração cancelada.");
         }
         pausar();
     }
@@ -483,7 +504,6 @@ public class SubMenus {
 
             if (apt.getStatus() == StatusApartamento.RESERVADO) {
                 String infoInteressado = "NÃO VINCULADO";
-                // A CORREÇÃO PRINCIPAL: Mudou para getClienteInteressado()
                 Cliente clienteSalvo = apt.getClienteInteressado();
 
                 if (clienteSalvo != null) {
@@ -511,12 +531,6 @@ public class SubMenus {
                     if(st == 2){
                         System.out.print("Insira o CPF do interessado: ");
                         String cpf = scan.nextLine();
-
-                        if (!validar.validarCPF(cpf)) {
-                            System.out.println("[ERRO] Formato de CPF inválido!");
-                            pausar();
-                            break;
-                        }
 
                         clienteParaVincular = service.buscaCliente(cpf);
                         if(clienteParaVincular == null){
@@ -694,10 +708,6 @@ public class SubMenus {
 
         System.out.print(" > CPF: ");
         String cpf = scan.nextLine();
-        if(!validar.validarCPF(cpf)){
-            System.out.println("Formato de CPF inválido!!!");
-            return;
-        }
 
         System.out.print(" > RG: ");
         String rg = scan.nextLine();
