@@ -457,7 +457,7 @@ public class SubMenus {
 
             // Exibe o interessado apenas se estiver reservado
             if (apt.getStatus() == StatusApartamento.RESERVADO) {
-                String interessado = (apt.getClienteInteressado() == null || apt.getClienteInteressado() == null) // alterar esta parte para se adequar a classe Cliente
+                String interessado = (apt.getClienteInteressado() == null) // alterar esta parte para se adequar a classe Cliente
                         ? "NÃO VINCULADO" : apt.getClienteInteressado().getNome();
                 System.out.printf("    > Interessado | CPF: %s\n", interessado);
             }
@@ -616,7 +616,7 @@ public class SubMenus {
                             aptAtual.getMetragem(),
                             aptAtual.getValorDeVenda(),
                             aptAtual.getValorSinal(),
-                            (aptAtual.getClienteInteressado() == null || aptAtual.getClienteInteressado() == null ? "NÃO INFORMADO" : aptAtual.getClienteInteressado().getNome()) //alterar esta parte para se adequar a classe cliente
+                            (aptAtual.getClienteInteressado() == null ? "NÃO INFORMADO" : aptAtual.getClienteInteressado().getNome()) //alterar esta parte para se adequar a classe cliente
                     );
                     ctd++;
                 }
