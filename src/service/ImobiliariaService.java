@@ -239,16 +239,16 @@ public class ImobiliariaService {
         return aptSelecionado;
     }
 
-    public boolean atualizarStatus(Apartamento apt, int op, String cpf){
+    public boolean atualizarStatus(Apartamento apt, int op, Cliente clienteInteressado){
         if(op != 1 && op != 2) return false;
 
         if ((op == 1)) {
             apt.setStatus(StatusApartamento.DISPONIVEL);
-            apt.setCpfInteressado("");
+            apt.setCpfInteressado(null);
             apt.setValorSinal(0);
         } else {
             apt.setStatus(StatusApartamento.RESERVADO);
-            apt.setCpfInteressado(cpf);
+            apt.setCpfInteressado(clienteInteressado);
         }
 
         return true;
@@ -328,5 +328,19 @@ public class ImobiliariaService {
             if(edAtual.getId() > maiorID) maiorID = edAtual.getId();
         }
         return maiorID;
+    }
+
+    public boolean atualizarEstagioDaObra(int idEdificio, EstagioObra estagioNovo){
+        Edificio ed = buscarEdificioPorId(idEdificio);
+        if(ed != null){
+            ed.setEstagioObra(estagioNovo);
+            dados.gravarArquivo();
+            return true;
+        }
+        return false;
+    }
+
+    public void atualizarValorApartamento(Apartamento apt, double valor){
+        apt.setValorDeVenda(valor);
     }
 }
