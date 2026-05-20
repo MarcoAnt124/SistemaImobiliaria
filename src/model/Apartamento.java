@@ -31,12 +31,12 @@ public class Apartamento {
         this.clienteInterassado = null;
     }
 
-    public Cliente getCpfInteressado() {
+    public Cliente getClienteInteressado() {
         return clienteInterassado;
     }
 
-    public void setCpfInteressado(Cliente cpfInteressado) {
-        this.clienteInterassado = cpfInteressado;
+    public void setClienteInteressado(Cliente clienteInteressado) {
+        this.clienteInterassado = clienteInteressado;
     }
 
     public void setStatusApartamento(StatusApartamento status){

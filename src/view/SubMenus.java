@@ -11,7 +11,7 @@ import java.net.SocketTimeoutException;
 import java.util.Scanner;
 
 //alterar as funções das linhas 619 e 460, caso houver alguma dúvida é só perguntar no grupo ou no privado(Marco), caso precise de alguma função que não exista no service adicione um comentário e explique o que ela precisa fazer, se caso precisar dela para o código funcionar crie um esqueleto que retorna null para testes
-
+//
 public class SubMenus {
     private ImobiliariaService service;
     private Validar validar;
@@ -266,27 +266,27 @@ public class SubMenus {
         numAndar = scan.nextInt();
         scan.nextLine();
 
-            Apartamento aptNovo;
+        Apartamento aptNovo;
 
-            System.out.println("Insira a metragem(m²) do apartamento: ");
-            double metragem = scan.nextDouble();
-            scan.nextLine();
+        System.out.println("Insira a metragem(m²) do apartamento: ");
+        double metragem = scan.nextDouble();
+        scan.nextLine();
 
-            System.out.println("Insira a quantidade de quartos: ");
-            int qtdQuartos = scan.nextInt();
-            scan.nextLine();
+        System.out.println("Insira a quantidade de quartos: ");
+        int qtdQuartos = scan.nextInt();
+        scan.nextLine();
 
-            System.out.println("Insira a quantidade de banheiros: ");
-            int qtdBanheiros = scan.nextInt();
-            scan.nextLine();
+        System.out.println("Insira a quantidade de banheiros: ");
+        int qtdBanheiros = scan.nextInt();
+        scan.nextLine();
 
-            System.out.println("Insira o valor do apartamento: ");
-            double precoApt = scan.nextDouble();
-            scan.nextLine();
+        System.out.println("Insira o valor do apartamento: ");
+        double precoApt = scan.nextDouble();
+        scan.nextLine();
 
-            service.vincularApartamento(ed, numAndar, metragem, precoApt, qtdQuartos, qtdBanheiros );
+        service.vincularApartamento(ed, numAndar, metragem, precoApt, qtdQuartos, qtdBanheiros );
 
-            service.getDados().gravarArquivo();
+        service.getDados().gravarArquivo();
 
         System.out.println("\n[SUCESSO] Apartamento adicionado ao edificio !");
 
@@ -457,8 +457,8 @@ public class SubMenus {
 
             // Exibe o interessado apenas se estiver reservado
             if (apt.getStatus() == StatusApartamento.RESERVADO) {
-                String interessado = (apt.getCpfInteressado() == null || apt.getCpfInteressado().isEmpty()) // alterar esta parte para se adequar a classe Cliente
-                        ? "NÃO VINCULADO" : apt.getCpfInteressado();
+                String interessado = (apt.getClienteInteressado() == null || apt.getClienteInteressado() == null) // alterar esta parte para se adequar a classe Cliente
+                        ? "NÃO VINCULADO" : apt.getClienteInteressado().getNome();
                 System.out.printf("    > Interessado | CPF: %s\n", interessado);
             }
 
@@ -490,7 +490,7 @@ public class SubMenus {
                         apt.setValorSinal(0);
                     }
 
-                    if(!service.atualizarStatus(apt, st, cpf)){
+                    if(!service.atualizarStatus(apt, st, cliente)){
                         System.out.println("[ERRO] Opção de status inválida!");
                         pausar();
                     }
@@ -616,7 +616,7 @@ public class SubMenus {
                             aptAtual.getMetragem(),
                             aptAtual.getValorDeVenda(),
                             aptAtual.getValorSinal(),
-                            (aptAtual.getCpfInteressado() == null || aptAtual.getCpfInteressado().isEmpty() ? "NÃO INFORMADO" : aptAtual.getCpfInteressado()) //alterar esta parte para se adequar a classe cliente
+                            (aptAtual.getClienteInteressado() == null || aptAtual.getClienteInteressado() == null ? "NÃO INFORMADO" : aptAtual.getClienteInteressado().getNome()) //alterar esta parte para se adequar a classe cliente
                     );
                     ctd++;
                 }

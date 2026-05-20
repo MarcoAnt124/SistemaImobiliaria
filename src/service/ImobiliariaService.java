@@ -244,11 +244,11 @@ public class ImobiliariaService {
 
         if ((op == 1)) {
             apt.setStatus(StatusApartamento.DISPONIVEL);
-            apt.setCpfInteressado(null);
+            apt.setClienteInteressado(null);
             apt.setValorSinal(0);
         } else {
             apt.setStatus(StatusApartamento.RESERVADO);
-            apt.setCpfInteressado(clienteInteressado);
+            apt.setClienteInteressado(clienteInteressado);
         }
 
         return true;
