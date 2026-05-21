@@ -10,7 +10,39 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+/**
+ * Repositório de persistência do Sistema Imobiliário.
+ * <p>
+ * Mantém em memória as coleções de {@link Vendedor}, {@link Edificio}, {@link Cliente}
+ * e {@link Venda}, sincronizando-as com o arquivo {@code dados_imobiliaria.json} na raiz do projeto.
+ * </p>
+ *
+ * <h2>Formato do arquivo JSON</h2>
+ * <pre>{@code
+ * {
+ *   "vendedores": [ { "idVendedor": 1, "nome": "..." } ],
+ *   "edificios":  [ { "id", "nome", "endereco", "estagioObra", "andares": [...] } ],
+ *   "clientes":   [ { "nome", "cpf", "rg", "estadoCivil", "conjuge"? } ],
+ *   "vendas":     [ { "vendedor", "cliente", "apartamento", "dataDaVenda", "idEdificio", "valorFinal" } ]
+ * }
+ * }</pre>
+ *
+ * <h2>Regras importantes</h2>
+ * <ul>
+ *   <li>Clientes são carregados <strong>antes</strong> de edifícios e vendas para vincular CPF de interessados.</li>
+ *   <li>Operações {@code anexar*} gravam imediatamente; em falha de gravação, a alteração em memória é revertida (rollback).</li>
+ *   <li>Vendas legadas sem {@code idEdificio} só conflitam com unidades quando o apto/andar existe em um único edifício.</li>
+ *   <li>Ao carregar vendas, apartamentos correspondentes nos edifícios são marcados como {@link StatusApartamento#VENDIDO}.</li>
+ * </ul>
+ *
+ * <p>O parser JSON é interno (sem dependências externas) e cobre objetos, arrays, strings, números e escapes básicos.</p>
+ *
+ * @see model.Venda
+ * @see model.Edificio
+ */
 public class DadosRepository {
+
+    /** Nome do arquivo de persistência relativo ao diretório de execução da aplicação. */
     private static final String ARQUIVO_DADOS = "dados_imobiliaria.json";
 
     private ArrayList<Vendedor> listaVendedores;
@@ -18,6 +50,9 @@ public class DadosRepository {
     private ArrayList<Cliente> listaClientes;
     private ArrayList<Venda> listaVendas;
 
+    /**
+     * Inicializa listas vazias e carrega dados do arquivo JSON, se existir.
+     */
     public DadosRepository() {
         this.listaVendedores = new ArrayList<>();
         this.listaEdificios = new ArrayList<>();
@@ -26,19 +61,44 @@ public class DadosRepository {
         lerArquivo();
     }
 
+    /** @return lista mutável de clientes em memória */
     public ArrayList<Cliente> getListaClientes() { return listaClientes; }
+
     public void setListaClientes(ArrayList<Cliente> listaClientes) { this.listaClientes = listaClientes; }
+
+    /** @return lista mutável de vendas em memória */
     public ArrayList<Venda> getListaVendas() { return listaVendas; }
+
     public void setListaVendas(ArrayList<Venda> listaVendas) { this.listaVendas = listaVendas; }
+
+    /** @return lista de vendedores (alias legado) */
     public ArrayList<Vendedor> listaVendedores(){ return this.listaVendedores; }
+
+    /** @return lista de clientes (alias legado) */
     public ArrayList<Cliente> listaClientes() { return this.listaClientes; }
+
+    /** @return lista de vendas (alias legado) */
     public ArrayList<Venda> listaVendas() { return this.listaVendas; }
+
+    /** Persiste o estado atual; equivalente a {@link #gravarArquivo()}. */
     public boolean salvarClientes() { return gravarArquivo(); }
+
+    /** Persiste o estado atual; equivalente a {@link #gravarArquivo()}. */
     public boolean salvarVendas() { return gravarArquivo(); }
+
+    /** @return lista de edifícios (alias legado) */
     public ArrayList<Edificio> listaEdificios(){ return this.listaEdificios; }
+
     public ArrayList<Vendedor> getListaVendedores() { return this.listaVendedores; }
+
     public ArrayList<Edificio> getListaEdificio() { return this.listaEdificios; }
 
+    /**
+     * Adiciona um vendedor e persiste no arquivo.
+     *
+     * @param vendedor vendedor a incluir; não pode ser {@code null}
+     * @return {@code false} se nulo, ID duplicado ou falha ao gravar (com rollback)
+     */
     public boolean anexarVendedor(Vendedor vendedor) {
         if (vendedor == null) return false;
         for (Vendedor v : this.listaVendedores) {
@@ -54,6 +114,12 @@ public class DadosRepository {
         return true;
     }
 
+    /**
+     * Adiciona um edifício e persiste no arquivo.
+     *
+     * @param edificio edifício a incluir; não pode ser {@code null}
+     * @return {@code false} se nulo, ID duplicado ou falha ao gravar (com rollback)
+     */
     public boolean anexarEdificio(Edificio edificio) {
         if (edificio == null) return false;
         for (Edificio e : this.listaEdificios) {
@@ -69,6 +135,13 @@ public class DadosRepository {
         return true;
     }
 
+    /**
+     * Adiciona um cliente e persiste no arquivo.
+     * CPF é normalizado e deve ser único na base.
+     *
+     * @param cliente cliente a incluir; não pode ser {@code null}
+     * @return {@code false} se nulo, CPF vazio/duplicado ou falha ao gravar (com rollback)
+     */
     public boolean anexarCliente(Cliente cliente){
         if (cliente == null) return false;
         String cpf = validation.Validar.normalizarCpf(cliente.getCpf());
@@ -86,6 +159,13 @@ public class DadosRepository {
         return true;
     }
 
+    /**
+     * Registra uma venda e persiste no arquivo.
+     * Impede duplicidade para a mesma unidade (andar + número + edifício).
+     *
+     * @param venda venda concluída; apartamento obrigatório
+     * @return {@code false} se inválida, unidade já vendida ou falha ao gravar (com rollback)
+     */
     public boolean anexarVenda(Venda venda){
         if (venda == null || venda.getApartamento() == null) return false;
         if (existeVendaParaApartamento(venda.getIdEdificio(), venda.getApartamento().getAndar(),
@@ -100,6 +180,11 @@ public class DadosRepository {
         return true;
     }
 
+    /**
+     * Serializa todas as listas em JSON e grava em {@link #ARQUIVO_DADOS} (UTF-8).
+     *
+     * @return {@code true} se a gravação foi bem-sucedida
+     */
     public boolean gravarArquivo() {
         try {
             String json = gerarJson();
@@ -112,6 +197,17 @@ public class DadosRepository {
         }
     }
 
+    /**
+     * Lê e interpreta o arquivo JSON, populando as listas em memória.
+     * <p>
+     * Se o arquivo não existir ou estiver vazio, mantém listas vazias e retorna {@code true}.
+     * Em erro de parse, zera as listas e retorna {@code false}.
+     * Após a carga, pode deduplicar registros, sincronizar status de apartamentos vendidos
+     * e regravar o arquivo quando correções automáticas forem aplicadas.
+     * </p>
+     *
+     * @return {@code true} se a leitura concluiu sem erro fatal
+     */
     public boolean lerArquivo() {
         Path caminho = Paths.get(ARQUIVO_DADOS);
         if (!Files.exists(caminho)) return true;
@@ -133,7 +229,6 @@ public class DadosRepository {
 
             JsonObject objRaiz = (JsonObject) raiz;
 
-            // IMPORTANTE: Ler clientes ANTES de ler edifícios e vendas para poder vincular
             ArrayList<Vendedor> vendedoresLidos = parseVendedores(objRaiz.getArray("vendedores"));
             int qtdVendedoresAntes = vendedoresLidos.size();
             this.listaVendedores = deduplicarVendedores(vendedoresLidos);
@@ -165,6 +260,7 @@ public class DadosRepository {
         }
     }
 
+    /** Monta o documento JSON raiz a partir das quatro coleções. */
     private String gerarJson() {
         StringBuilder sb = new StringBuilder();
         sb.append("{");
@@ -280,7 +376,6 @@ public class DadosRepository {
             sb.append("\"valorDeVenda\":").append(apt.getValorDeVenda()).append(",");
             sb.append("\"valorSinal\":").append(apt.getValorSinal()).append(",");
 
-            // CORREÇÃO: Pega o CPF do objeto Cliente e salva como String no JSON
             String cpfInteressado = (apt.getClienteInteressado() != null) ? apt.getClienteInteressado().getCpf() : "";
             sb.append("\"cpfInteressado\":\"").append(escape(cpfInteressado)).append("\",");
 
@@ -328,7 +423,6 @@ public class DadosRepository {
             sb.append("\"valorDeVenda\":").append(apt.getValorDeVenda()).append(",");
             sb.append("\"valorSinal\":").append(apt.getValorSinal()).append(",");
 
-            // CORREÇÃO: Pega o CPF do objeto Cliente e salva como String no JSON
             String cpfInteressado = (apt.getClienteInteressado() != null) ? apt.getClienteInteressado().getCpf() : "";
             sb.append("\"cpfInteressado\":\"").append(escape(cpfInteressado)).append("\",");
 
@@ -340,6 +434,7 @@ public class DadosRepository {
         return sb.toString();
     }
 
+    /** Remove clientes com CPF vazio ou repetido (mantém a primeira ocorrência). */
     private ArrayList<Cliente> deduplicarClientes(ArrayList<Cliente> lista) {
         ArrayList<Cliente> unicos = new ArrayList<>();
         for (Cliente c : lista) {
@@ -360,6 +455,19 @@ public class DadosRepository {
         return unicos;
     }
 
+    /**
+     * Verifica se já existe venda registrada para a unidade (andar + número).
+     * <ul>
+     *   <li>Com {@code idEdificio} &gt; 0 em ambos os lados: compara IDs.</li>
+     *   <li>Venda legada ({@code idEdificio} = 0): só bloqueia se o apto existir em um único edifício.</li>
+     *   <li>Ambos legados: compara apenas andar e número.</li>
+     * </ul>
+     *
+     * @param idEdificio identificador do edifício da nova venda (0 = legado)
+     * @param numAndar   número do andar
+     * @param numApt     número do apartamento
+     * @return {@code true} se já houver venda compatível na lista
+     */
     public boolean existeVendaParaApartamento(int idEdificio, int numAndar, int numApt) {
         for (Venda v : this.listaVendas) {
             if (v == null || v.getApartamento() == null) continue;
@@ -380,6 +488,11 @@ public class DadosRepository {
         return false;
     }
 
+    /**
+     * Localiza o edifício que contém a unidade, somente se for único na base.
+     *
+     * @return edifício encontrado ou {@code null} se nenhum ou mais de um contiver o apto
+     */
     private Edificio buscarUnicoEdificioPorApartamento(int numAndar, int numApt) {
         Edificio encontrado = null;
         for (Edificio ed : this.listaEdificios) {
@@ -400,6 +513,7 @@ public class DadosRepository {
         return false;
     }
 
+    /** Remove vendedores duplicados pelo {@code idVendedor} (mantém a primeira ocorrência). */
     private ArrayList<Vendedor> deduplicarVendedores(ArrayList<Vendedor> lista) {
         ArrayList<Vendedor> unicos = new ArrayList<>();
         for (Vendedor v : lista) {
@@ -430,6 +544,11 @@ public class DadosRepository {
         return resultado;
     }
 
+    /**
+     * Desserializa edifícios, andares e apartamentos.
+     * Ignora edifícios com {@code id <= 0} e andares com {@code numero <= 0}.
+     * Vincula {@code cpfInteressado} ao {@link Cliente} já carregado.
+     */
     private ArrayList<Edificio> parseEdificios(JsonArray arr) {
         ArrayList<Edificio> resultado = new ArrayList<>();
         if (arr == null) return resultado;
@@ -470,7 +589,6 @@ public class DadosRepository {
                             );
                             apt.setValorSinal(objApt.getDouble("valorSinal", 0.0));
 
-                            // CORREÇÃO: Lê o CPF em String e converte para o Objeto Cliente correto da lista
                             String cpfSalvo = objApt.getString("cpfInteressado", "");
                             apt.setClienteInteressado(buscarClientePorCpf(cpfSalvo));
 
@@ -518,6 +636,10 @@ public class DadosRepository {
         return resultado;
     }
 
+    /**
+     * Desserializa vendas. O cliente da venda deve existir em {@link #listaClientes};
+     * registros sem correspondência são ignorados e contabilizados em aviso no console.
+     */
     private ArrayList<Venda> parseVendas(JsonArray arr) {
         ArrayList<Venda> resultado = new ArrayList<>();
         if (arr == null) return resultado;
@@ -563,7 +685,6 @@ public class DadosRepository {
             );
             apt.setValorSinal(objApartamento.getDouble("valorSinal", 0.0));
 
-            // CORREÇÃO: Lê o CPF em String e converte para Objeto Cliente
             String cpfSalvoApt = objApartamento.getString("cpfInteressado", "");
             apt.setClienteInteressado(buscarClientePorCpf(cpfSalvoApt));
 
@@ -585,6 +706,7 @@ public class DadosRepository {
         return resultado;
     }
 
+    /** Corrige apto DISPONÍVEL que ainda possui valor de sinal ou interessado no JSON. */
     private void normalizarApartamentoInconsistente(Apartamento apt) {
         if (apt.getStatus() == StatusApartamento.DISPONIVEL && apt.getValorSinal() > 0) {
             apt.setValorSinal(0);
@@ -592,6 +714,7 @@ public class DadosRepository {
         }
     }
 
+    /** Resolve referência de cliente pelo CPF normalizado na lista em memória. */
     private Cliente buscarClientePorCpf(String cpf) {
         String cpfNorm = validation.Validar.normalizarCpf(cpf);
         if (cpfNorm.isEmpty()) {
@@ -605,6 +728,11 @@ public class DadosRepository {
         return null;
     }
 
+    /**
+     * Após carregar vendas, marca como {@link StatusApartamento#VENDIDO} o apartamento
+     * correspondente no edifício indicado por {@code idEdificio}, ou no único edifício
+     * que contém a unidade quando o ID for legado (0).
+     */
     private void sincronizarVendasComEdificios() {
         for (Venda venda : this.listaVendas) {
             if (venda == null || venda.getApartamento() == null) {
@@ -649,16 +777,31 @@ public class DadosRepository {
         return (JsonObject) value;
     }
 
+    /** Escapa caracteres especiais para inclusão segura em strings JSON. */
     private String escape(String texto) {
         if (texto == null) return "";
         return texto.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t");
     }
 
-    private interface JsonValue {}
-    private static class JsonString implements JsonValue { private final String value; private JsonString(String value) { this.value = value; } }
-    private static class JsonNumber implements JsonValue { private final double value; private JsonNumber(double value) { this.value = value; } }
-    private static class JsonArray implements JsonValue { private final ArrayList<JsonValue> values = new ArrayList<>(); }
+    // --- Parser JSON interno (sem bibliotecas externas) ---
 
+    private interface JsonValue {}
+
+    private static class JsonString implements JsonValue {
+        private final String value;
+        private JsonString(String value) { this.value = value; }
+    }
+
+    private static class JsonNumber implements JsonValue {
+        private final double value;
+        private JsonNumber(double value) { this.value = value; }
+    }
+
+    private static class JsonArray implements JsonValue {
+        private final ArrayList<JsonValue> values = new ArrayList<>();
+    }
+
+    /** Representação de objeto JSON com acesso tipado por chave. */
     private static class JsonObject implements JsonValue {
         private final java.util.HashMap<String, JsonValue> values = new java.util.HashMap<>();
         private String getString(String key, String defaultValue) { JsonValue value = values.get(key); if (value instanceof JsonString) return ((JsonString) value).value; return defaultValue; }
@@ -668,9 +811,11 @@ public class DadosRepository {
         private JsonObject getObject(String key) { JsonValue value = values.get(key); if (value instanceof JsonObject) return (JsonObject) value; return null; }
     }
 
+    /** Analisador recursivo descendente para o subconjunto de JSON usado pelo sistema. */
     private static class JsonParser {
         private final String text;
         private int pos;
+
         private JsonParser(String text) { this.text = text; this.pos = 0; }
         private JsonValue parse() { skipSpaces(); JsonValue value = parseValue(); skipSpaces(); if (pos != text.length()) throw new IllegalArgumentException("Conteudo extra apos JSON valido"); return value; }
 
