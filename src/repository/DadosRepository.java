@@ -41,26 +41,63 @@ public class DadosRepository {
 
     public boolean anexarVendedor(Vendedor vendedor) {
         if (vendedor == null) return false;
+        for (Vendedor v : this.listaVendedores) {
+            if (v.getIdVendedor() == vendedor.getIdVendedor()) {
+                return false;
+            }
+        }
         this.listaVendedores.add(vendedor);
-        return gravarArquivo();
+        if (!gravarArquivo()) {
+            this.listaVendedores.remove(vendedor);
+            return false;
+        }
+        return true;
     }
 
     public boolean anexarEdificio(Edificio edificio) {
         if (edificio == null) return false;
+        for (Edificio e : this.listaEdificios) {
+            if (e.getId() == edificio.getId()) {
+                return false;
+            }
+        }
         this.listaEdificios.add(edificio);
-        return gravarArquivo();
+        if (!gravarArquivo()) {
+            this.listaEdificios.remove(edificio);
+            return false;
+        }
+        return true;
     }
 
     public boolean anexarCliente(Cliente cliente){
         if (cliente == null) return false;
+        String cpf = validation.Validar.normalizarCpf(cliente.getCpf());
+        if (cpf.isEmpty()) return false;
+        for (Cliente c : this.listaClientes) {
+            if (validation.Validar.normalizarCpf(c.getCpf()).equals(cpf)) {
+                return false;
+            }
+        }
         this.listaClientes.add(cliente);
-        return gravarArquivo();
+        if (!gravarArquivo()) {
+            this.listaClientes.remove(cliente);
+            return false;
+        }
+        return true;
     }
 
     public boolean anexarVenda(Venda venda){
-        if (venda == null) return false;
+        if (venda == null || venda.getApartamento() == null) return false;
+        if (existeVendaParaApartamento(venda.getIdEdificio(), venda.getApartamento().getAndar(),
+                venda.getApartamento().getNumero())) {
+            return false;
+        }
         this.listaVendas.add(venda);
-        return gravarArquivo();
+        if (!gravarArquivo()) {
+            this.listaVendas.remove(venda);
+            return false;
+        }
+        return true;
     }
 
     public boolean gravarArquivo() {
@@ -97,10 +134,24 @@ public class DadosRepository {
             JsonObject objRaiz = (JsonObject) raiz;
 
             // IMPORTANTE: Ler clientes ANTES de ler edifícios e vendas para poder vincular
-            this.listaVendedores = parseVendedores(objRaiz.getArray("vendedores"));
-            this.listaClientes = parseClientes(objRaiz.getArray("clientes"));
+            ArrayList<Vendedor> vendedoresLidos = parseVendedores(objRaiz.getArray("vendedores"));
+            int qtdVendedoresAntes = vendedoresLidos.size();
+            this.listaVendedores = deduplicarVendedores(vendedoresLidos);
+            ArrayList<Cliente> clientesLidos = parseClientes(objRaiz.getArray("clientes"));
+            int qtdClientesAntes = clientesLidos.size();
+            this.listaClientes = deduplicarClientes(clientesLidos);
             this.listaEdificios = parseEdificios(objRaiz.getArray("edificios"));
             this.listaVendas = parseVendas(objRaiz.getArray("vendas"));
+
+            boolean precisaGravar = qtdVendedoresAntes != this.listaVendedores.size()
+                    || qtdClientesAntes != this.listaClientes.size();
+            if (!this.listaVendas.isEmpty()) {
+                sincronizarVendasComEdificios();
+                precisaGravar = true;
+            }
+            if (precisaGravar && !gravarArquivo()) {
+                System.out.println("[AVISO] Dados carregados, mas não foi possível gravar correções no arquivo.");
+            }
 
             return true;
         } catch (Exception e) {
@@ -148,6 +199,8 @@ public class DadosRepository {
             sb.append("\"id\":").append(edificio.getId()).append(",");
             sb.append("\"nome\":\"").append(escape(edificio.getNome())).append("\",");
             sb.append("\"endereco\":\"").append(escape(edificio.getEndereco())).append("\",");
+            EstagioObra estagio = edificio.getEstagioObra() == null ? EstagioObra.LANCAMENTO : edificio.getEstagioObra();
+            sb.append("\"estagioObra\":\"").append(estagio.name()).append("\",");
             sb.append("\"andares\":").append(gerarJsonAndares(edificio.getAndares()));
             sb.append("}");
         }
@@ -237,6 +290,7 @@ public class DadosRepository {
 
             String data = venda.getDataDaVenda() == null ? "" : venda.getDataDaVenda().toString();
             sb.append("\"dataDaVenda\":\"").append(escape(data)).append("\",");
+            sb.append("\"idEdificio\":").append(venda.getIdEdificio()).append(",");
             sb.append("\"valorFinal\":").append(venda.getValorFinal());
 
             sb.append("}");
@@ -278,11 +332,89 @@ public class DadosRepository {
             String cpfInteressado = (apt.getClienteInteressado() != null) ? apt.getClienteInteressado().getCpf() : "";
             sb.append("\"cpfInteressado\":\"").append(escape(cpfInteressado)).append("\",");
 
-            sb.append("\"status\":\"").append(apt.getStatus().name()).append("\"");
+            StatusApartamento statusApt = apt.getStatus() == null ? StatusApartamento.DISPONIVEL : apt.getStatus();
+            sb.append("\"status\":\"").append(statusApt.name()).append("\"");
             sb.append("}");
         }
         sb.append("]");
         return sb.toString();
+    }
+
+    private ArrayList<Cliente> deduplicarClientes(ArrayList<Cliente> lista) {
+        ArrayList<Cliente> unicos = new ArrayList<>();
+        for (Cliente c : lista) {
+            if (c == null) continue;
+            String cpf = validation.Validar.normalizarCpf(c.getCpf());
+            if (cpf.isEmpty()) continue;
+            boolean duplicado = false;
+            for (Cliente u : unicos) {
+                if (validation.Validar.normalizarCpf(u.getCpf()).equals(cpf)) {
+                    duplicado = true;
+                    break;
+                }
+            }
+            if (!duplicado) {
+                unicos.add(c);
+            }
+        }
+        return unicos;
+    }
+
+    public boolean existeVendaParaApartamento(int idEdificio, int numAndar, int numApt) {
+        for (Venda v : this.listaVendas) {
+            if (v == null || v.getApartamento() == null) continue;
+            Apartamento aptV = v.getApartamento();
+            if (aptV.getNumero() != numApt || aptV.getAndar() != numAndar) {
+                continue;
+            }
+            int idVenda = v.getIdEdificio();
+            if (idEdificio > 0 && idVenda > 0) {
+                if (idEdificio == idVenda) return true;
+            } else if (idEdificio > 0 && idVenda <= 0) {
+                Edificio unico = buscarUnicoEdificioPorApartamento(numAndar, numApt);
+                if (unico != null && unico.getId() == idEdificio) return true;
+            } else if (idEdificio <= 0 && idVenda <= 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private Edificio buscarUnicoEdificioPorApartamento(int numAndar, int numApt) {
+        Edificio encontrado = null;
+        for (Edificio ed : this.listaEdificios) {
+            if (!edificioContemApartamento(ed, numAndar, numApt)) continue;
+            if (encontrado != null) return null;
+            encontrado = ed;
+        }
+        return encontrado;
+    }
+
+    private boolean edificioContemApartamento(Edificio ed, int numAndar, int numApt) {
+        for (Andar andar : ed.getAndares()) {
+            if (andar.getNumero() != numAndar) continue;
+            for (Apartamento apt : andar.getApartamentos()) {
+                if (apt.getNumero() == numApt) return true;
+            }
+        }
+        return false;
+    }
+
+    private ArrayList<Vendedor> deduplicarVendedores(ArrayList<Vendedor> lista) {
+        ArrayList<Vendedor> unicos = new ArrayList<>();
+        for (Vendedor v : lista) {
+            boolean duplicado = false;
+            for (Vendedor u : unicos) {
+                if (u.getIdVendedor() == v.getIdVendedor()) {
+                    duplicado = true;
+                    break;
+                }
+            }
+            if (!duplicado) {
+                unicos.add(v);
+            }
+        }
+        return unicos;
     }
 
     private ArrayList<Vendedor> parseVendedores(JsonArray arr) {
@@ -305,15 +437,23 @@ public class DadosRepository {
         for (JsonValue item : arr.values) {
             JsonObject objEdificio = asObject(item);
             int id = objEdificio.getInt("id", 0);
+            if (id <= 0) continue;
             String nome = objEdificio.getString("nome", "");
             String endereco = objEdificio.getString("endereco", "");
 
             Edificio edificio = new Edificio(id, nome, endereco);
+            String estagioStr = objEdificio.getString("estagioObra", EstagioObra.LANCAMENTO.name());
+            try {
+                edificio.setEstagioObra(EstagioObra.valueOf(estagioStr));
+            } catch (IllegalArgumentException ignored) {
+                edificio.setEstagioObra(EstagioObra.LANCAMENTO);
+            }
             JsonArray andaresArr = objEdificio.getArray("andares");
             if (andaresArr != null) {
                 for (JsonValue andarValue : andaresArr.values) {
                     JsonObject objAndar = asObject(andarValue);
                     int numeroAndar = objAndar.getInt("numero", 0);
+                    if (numeroAndar <= 0) continue;
                     Andar andar = new Andar(numeroAndar);
 
                     JsonArray aptosArr = objAndar.getArray("apartamentos");
@@ -332,20 +472,12 @@ public class DadosRepository {
 
                             // CORREÇÃO: Lê o CPF em String e converte para o Objeto Cliente correto da lista
                             String cpfSalvo = objApt.getString("cpfInteressado", "");
-                            Cliente clienteVinculado = null;
-                            if (!cpfSalvo.isEmpty()) {
-                                for (Cliente c : this.listaClientes) {
-                                    if (c.getCpf().equals(cpfSalvo)) {
-                                        clienteVinculado = c;
-                                        break;
-                                    }
-                                }
-                            }
-                            apt.setClienteInteressado(clienteVinculado);
+                            apt.setClienteInteressado(buscarClientePorCpf(cpfSalvo));
 
                             String status = objApt.getString("status", StatusApartamento.DISPONIVEL.name());
                             try { apt.setStatus(StatusApartamento.valueOf(status)); }
                             catch (IllegalArgumentException ignored) { apt.setStatus(StatusApartamento.DISPONIVEL); }
+                            normalizarApartamentoInconsistente(apt);
                             andar.getApartamentos().add(apt);
                         }
                     }
@@ -390,6 +522,7 @@ public class DadosRepository {
         ArrayList<Venda> resultado = new ArrayList<>();
         if (arr == null) return resultado;
 
+        int ignoradas = 0;
         for (JsonValue item : arr.values) {
             JsonObject obj = asObject(item);
 
@@ -404,26 +537,21 @@ public class DadosRepository {
                     objVendedor.getString("nome", "")
             );
 
-            String nomeCli = objCliente.getString("nome", "");
             String cpfCli = objCliente.getString("cpf", "");
-            String rgCli = objCliente.getString("rg", "");
-            String estadoCivilStr = objCliente.getString("estadoCivil", EstadoCivil.SOLTEIRO.name());
-            EstadoCivil estadoCivil;
-            try { estadoCivil = EstadoCivil.valueOf(estadoCivilStr); }
-            catch (IllegalArgumentException ignored) { estadoCivil = EstadoCivil.SOLTEIRO; }
-
-            JsonObject objConjuge = objCliente.getObject("conjuge");
-            Cliente cliente;
-            if (objConjuge != null) {
-                Conjuge conjuge = new Conjuge(
-                        objConjuge.getString("nome", ""),
-                        objConjuge.getString("cpf", ""),
-                        objConjuge.getString("rg", "")
-                );
-                cliente = new Cliente(nomeCli, cpfCli, rgCli, estadoCivil, conjuge);
-            } else {
-                cliente = new Cliente(nomeCli, cpfCli, rgCli, estadoCivil);
+            Cliente cliente = null;
+            String cpfCliNorm = validation.Validar.normalizarCpf(cpfCli);
+            for (Cliente c : this.listaClientes) {
+                if (c.getCpf() != null && validation.Validar.normalizarCpf(c.getCpf()).equals(cpfCliNorm)) {
+                    cliente = c;
+                    break;
+                }
             }
+            if (cliente == null) {
+                ignoradas++;
+                continue;
+            }
+
+            int idEdificio = obj.getInt("idEdificio", 0);
 
             Apartamento apt = new Apartamento(
                     objApartamento.getInt("numero", 0),
@@ -437,16 +565,7 @@ public class DadosRepository {
 
             // CORREÇÃO: Lê o CPF em String e converte para Objeto Cliente
             String cpfSalvoApt = objApartamento.getString("cpfInteressado", "");
-            Cliente clienteVinculadoApt = null;
-            if (!cpfSalvoApt.isEmpty()) {
-                for (Cliente c : this.listaClientes) {
-                    if (c.getCpf().equals(cpfSalvoApt)) {
-                        clienteVinculadoApt = c;
-                        break;
-                    }
-                }
-            }
-            apt.setClienteInteressado(clienteVinculadoApt);
+            apt.setClienteInteressado(buscarClientePorCpf(cpfSalvoApt));
 
             String status = objApartamento.getString("status", StatusApartamento.DISPONIVEL.name());
             try { apt.setStatusApartamento(StatusApartamento.valueOf(status)); }
@@ -458,9 +577,71 @@ public class DadosRepository {
             catch (Exception ignored) { dataDaVenda = LocalDate.now(); }
 
             double valorFinal = obj.getDouble("valorFinal", 0.0);
-            resultado.add(new Venda(vendedor, apt, cliente, dataDaVenda, valorFinal));
+            resultado.add(new Venda(vendedor, apt, cliente, idEdificio, dataDaVenda, valorFinal));
+        }
+        if (ignoradas > 0) {
+            System.out.println("[AVISO] " + ignoradas + " venda(s) ignorada(s) no JSON (cliente não cadastrado ou dados incompletos).");
         }
         return resultado;
+    }
+
+    private void normalizarApartamentoInconsistente(Apartamento apt) {
+        if (apt.getStatus() == StatusApartamento.DISPONIVEL && apt.getValorSinal() > 0) {
+            apt.setValorSinal(0);
+            apt.setClienteInteressado(null);
+        }
+    }
+
+    private Cliente buscarClientePorCpf(String cpf) {
+        String cpfNorm = validation.Validar.normalizarCpf(cpf);
+        if (cpfNorm.isEmpty()) {
+            return null;
+        }
+        for (Cliente c : this.listaClientes) {
+            if (validation.Validar.normalizarCpf(c.getCpf()).equals(cpfNorm)) {
+                return c;
+            }
+        }
+        return null;
+    }
+
+    private void sincronizarVendasComEdificios() {
+        for (Venda venda : this.listaVendas) {
+            if (venda == null || venda.getApartamento() == null) {
+                continue;
+            }
+            int numApt = venda.getApartamento().getNumero();
+            int numAndar = venda.getApartamento().getAndar();
+            int idEdificio = venda.getIdEdificio();
+
+            Edificio alvo = null;
+            if (idEdificio > 0) {
+                for (Edificio ed : this.listaEdificios) {
+                    if (ed.getId() == idEdificio) {
+                        alvo = ed;
+                        break;
+                    }
+                }
+            } else {
+                alvo = buscarUnicoEdificioPorApartamento(numAndar, numApt);
+            }
+            if (alvo == null) continue;
+            marcarApartamentoVendidoNoEdificio(alvo, numAndar, numApt);
+        }
+    }
+
+    private void marcarApartamentoVendidoNoEdificio(Edificio edificio, int numAndar, int numApt) {
+        for (Andar andar : edificio.getAndares()) {
+            if (andar.getNumero() != numAndar) continue;
+            for (Apartamento apt : andar.getApartamentos()) {
+                if (apt.getNumero() == numApt) {
+                    apt.setStatusApartamento(StatusApartamento.VENDIDO);
+                    apt.setClienteInteressado(null);
+                    apt.setValorSinal(0);
+                    return;
+                }
+            }
+        }
     }
 
     private JsonObject asObject(JsonValue value) {

@@ -20,28 +20,49 @@ public class MenuPrincipal {
     }
 
     public void iniciarSistema() {
-        limparConsole();
-        int id;
-        do {
+        while (true) {
+            limparConsole();
             System.out.println("========================================");
             System.out.println("          SISTEMA IMOBILIÁRIO");
             System.out.println("========================================");
+            System.out.println(" 0 - Encerrar o sistema");
             System.out.print("Digite seu ID de acesso: ");
-            id = scan.nextInt();
-            scan.nextLine();
+
+            int id = lerInt();
+            if (id == 0) {
+                System.out.println("Sistema encerrado. Até logo!");
+                break;
+            }
 
             if (serviceAut.verificarID(id)) {
                 if (serviceAut.verificarADM()) {
                     menuAdministrativo();
                 }
-
                 exibirMenuPrincipal();
-
+                serviceAut.setVendedorAtual(null);
             } else {
                 System.out.println("\n[ERRO] O ID " + id + " não está cadastrado!");
                 pausar();
             }
-        }while(!serviceAut.verificarID(id));
+        }
+    }
+
+    private int lerInt() {
+        while (true) {
+            try {
+                if (!scan.hasNextInt()) {
+                    System.out.println("[ERRO] Digite um número válido.");
+                    scan.next();
+                    continue;
+                }
+                int valor = scan.nextInt();
+                scan.nextLine();
+                return valor;
+            } catch (java.util.NoSuchElementException e) {
+                System.out.println("[ERRO] Entrada encerrada.");
+                return 0;
+            }
+        }
     }
 
     private void menuAdministrativo() {
@@ -52,20 +73,18 @@ public class MenuPrincipal {
             System.out.println("1 - Cadastrar Novo Vendedor");
             System.out.println("0 - Prosseguir para o Sistema");
             System.out.print("Escolha: ");
-            config = scan.nextInt();
-            scan.nextLine();
+            config = lerInt();
 
             if (config == 1) {
                 System.out.print("Nome do novo Vendedor: ");
                 String nome = scan.nextLine();
                 System.out.print("ID para o novo Vendedor: ");
-                int idNovo = scan.nextInt();
-                scan.nextLine();
+                int idNovo = lerInt();
 
                 if (serviceImo.adicionarVendedor(nome, idNovo)) {
                     System.out.println("[OK] Vendedor cadastrado com sucesso!");
                 } else {
-                    System.out.println("[ERRO] Falha ao cadastrar vendedor.");
+                    System.out.println("[ERRO] Falha ao cadastrar vendedor (ID já existe ou erro ao salvar).");
                 }
                 pausar();
             }
@@ -79,18 +98,18 @@ public class MenuPrincipal {
         do {
             limparConsole();
             System.out.println("========================================");
-            System.out.println("   SEJA BEM-VINDO, " + logado.getNome().toUpperCase());
+            String nomeVendedor = (logado != null && logado.getNome() != null) ? logado.getNome() : "VENDEDOR";
+            System.out.println("   SEJA BEM-VINDO, " + nomeVendedor.toUpperCase());
             System.out.println("========================================");
             System.out.println(" 1 - Gestão de Imóveis");
             System.out.println(" 2 - Gestão de Clientes");
             System.out.println(" 3 - Efetuar Venda (Fechar Negócio)");
             System.out.println(" 4 - Histórico de Vendas");
-            System.out.println(" 0 - Sair do Sistema");
+            System.out.println(" 0 - Sair da sessão (voltar ao login)");
             System.out.println("----------------------------------------");
             System.out.print("Escolha uma opção: ");
 
-            op = scan.nextInt();
-            scan.nextLine();
+            op = lerInt();
 
             switch (op) {
                 case 1:
@@ -104,7 +123,6 @@ public class MenuPrincipal {
                     break;
                 case 4:
                     subMenus.listarVendas();
-                    pausar();
                     break;
                 case 0:
                     System.out.println("Finalizando sessão... Até logo!");

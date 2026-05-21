@@ -9,7 +9,7 @@ public class Apartamento {
     private int quantidadeDeBanheiros;
     private double valorDeVenda;
     private double valorSinal;
-    private Cliente clienteInterassado;
+    private Cliente clienteInteressado;
 
     public void setStatus(StatusApartamento statusNovo){
         this.status = statusNovo;
@@ -28,15 +28,15 @@ public class Apartamento {
         this.quantidadeDeBanheiros = quantidadeDeBanheiros;
         this.valorDeVenda = valorDeVenda;
         this.valorSinal = 0;
-        this.clienteInterassado = null;
+        this.clienteInteressado = null;
     }
 
     public Cliente getClienteInteressado() {
-        return clienteInterassado;
+        return clienteInteressado;
     }
 
     public void setClienteInteressado(Cliente clienteInteressado) {
-        this.clienteInterassado = clienteInteressado;
+        this.clienteInteressado = clienteInteressado;
     }
 
     public void setStatusApartamento(StatusApartamento status){

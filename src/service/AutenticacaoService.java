@@ -1,6 +1,4 @@
 package service;
-import model.Apartamento;
-import model.StatusApartamento;
 import repository.DadosRepository;
 import model.Vendedor;
 
