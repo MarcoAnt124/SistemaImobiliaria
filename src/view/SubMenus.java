@@ -99,9 +99,11 @@ public class SubMenus {
                 }
                 System.out.printf("\nApto: %d | Andar: %02dº | Valor Atual: %s\n",
                         apt.getNumero(), andar.getNumero(), Validar.formatarValorReais(apt.getValorDeVenda()));
-                System.out.print("Digite o NOVO valor de venda (R$): ");
-                double novoValor = lerDouble();
-
+                System.out.print("Digite o NOVO valor de venda (R$) [ENTER mantém atual]: ");
+                Double novoValor = lerDoubleOpcional();
+                if (novoValor == null) {
+                    continue;
+                }
                 if (!Validar.validarValorPositivo(novoValor)) {
                     System.out.println("[AVISO] Valor inválido ignorado para o apto " + apt.getNumero());
                     continue;
@@ -111,14 +113,23 @@ public class SubMenus {
             }
         }
 
+        boolean valoresSalvos = true;
         if (valoresAtualizados > 0) {
-            service.getDados().gravarArquivo();
+            valoresSalvos = gravarDados();
         }
 
-        if (estagioAtualizado || valoresAtualizados > 0) {
-            System.out.println("\n[SUCESSO] Estágio da obra e/ou valores atualizados com sucesso!");
-        } else {
+        if (estagioAtualizado && valoresAtualizados == 0) {
+            System.out.println("\n[SUCESSO] Estágio da obra atualizado com sucesso!");
+        } else if (estagioAtualizado && valoresAtualizados > 0 && valoresSalvos) {
+            System.out.println("\n[SUCESSO] Estágio da obra e valores atualizados com sucesso!");
+        } else if (!estagioAtualizado && valoresAtualizados > 0 && valoresSalvos) {
+            System.out.println("\n[SUCESSO] Valores dos apartamentos atualizados com sucesso!");
+        } else if (valoresAtualizados > 0 && !valoresSalvos) {
+            System.out.println("\n[ERRO] Valores alterados em memória, mas falha ao salvar no arquivo.");
+        } else if (!estagioAtualizado && valoresAtualizados == 0) {
             System.out.println("\n[AVISO] Nenhuma alteração foi aplicada.");
+        } else {
+            System.out.println("\n[ERRO] Falha ao atualizar o estágio da obra no arquivo.");
         }
         pausar();
     }
@@ -210,8 +221,9 @@ public class SubMenus {
             return;
         }
 
-        if (!service.podeEfetuarVenda(aptAtual, clienteAtual)) {
-            System.out.println("[ERRO] O cliente informado não corresponde à reserva deste apartamento.");
+        String motivoVenda = service.motivoVendaNegada(aptAtual, clienteAtual);
+        if (motivoVenda != null) {
+            System.out.println("[ERRO] " + motivoVenda);
             pausar();
             return;
         }
@@ -268,7 +280,7 @@ public class SubMenus {
             System.out.println("========================================");
             System.out.println("\nVenda bem sucedida!!!");
         } else {
-            System.out.println("[ERRO] Não foi possível concluir a venda. Verifique os dados e tente novamente.");
+            System.out.println("[ERRO] " + service.motivoFalhaRegistroVenda(vendaAtual));
         }
         pausar();
     }
@@ -366,11 +378,10 @@ public class SubMenus {
             numAptGerado = ultimo.getNumero();
         }
 
-        if (!service.getDados().gravarArquivo()) {
+        if (!gravarDados()) {
             if (numAptGerado > 0) {
                 service.removerUltimoApartamento(ed, numAndar, numAptGerado);
             }
-            System.out.println("[ERRO] Falha ao salvar o apartamento no arquivo de dados.");
             pausar();
             return;
         }
@@ -559,12 +570,21 @@ public class SubMenus {
                     return;
                 }
                 aptAtualizar.setValorSinal(sinal);
-                service.getDados().gravarArquivo();
-                System.out.println("\n[SUCESSO] Apartamento reservado com sucesso!");
+                if (gravarDados()) {
+                    System.out.println("\n[SUCESSO] Apartamento reservado com sucesso!");
+                } else {
+                    aptAtualizar.setStatus(StatusApartamento.DISPONIVEL);
+                    aptAtualizar.setClienteInteressado(null);
+                    aptAtualizar.setValorSinal(0);
+                    System.out.println("[ERRO] Falha ao salvar a reserva no arquivo.");
+                }
             } else if (st == 1) {
                 if (service.atualizarStatus(aptAtualizar, st, cliente)) {
-                    System.out.println("\n[SUCESSO] Apartamento liberado com sucesso!");
-                    service.getDados().gravarArquivo();
+                    if (gravarDados()) {
+                        System.out.println("\n[SUCESSO] Apartamento liberado com sucesso!");
+                    } else {
+                        System.out.println("[ERRO] Status alterado, mas falha ao salvar no arquivo.");
+                    }
                 } else {
                     System.out.println("\n[ERRO] Não foi possível liberar o apartamento.");
                 }
@@ -582,8 +602,9 @@ public class SubMenus {
         sb.append("\n====================================================\n");
         sb.append("             CONFIRMAÇÃO DO IMÓVEL\n");
         sb.append("====================================================\n");
-        sb.append(String.format(" Edifício: %s\n", ed.getNome().toUpperCase()));
-        sb.append(String.format(" Endereço: %s\n", ed.getEndereco()));
+        String nomeEd = ed.getNome() == null ? "-" : ed.getNome().toUpperCase();
+        sb.append(String.format(" Edifício: %s\n", nomeEd));
+        sb.append(String.format(" Endereço: %s\n", ed.getEndereco() == null ? "-" : ed.getEndereco()));
         sb.append("----------------------------------------------------\n");
         sb.append(String.format(" Unidade:  Apto %d\n", apt.getNumero()));
         sb.append(String.format(" Andar:   %dº Andar\n", apt.getAndar()));
@@ -608,6 +629,7 @@ public class SubMenus {
             return;
         }
 
+        boolean alterado = false;
         int subOp;
         do {
             limparConsole();
@@ -676,8 +698,11 @@ public class SubMenus {
                             break;
                         }
                         apt.setValorSinal(sinal);
+                        alterado = true;
                     } else if (st == 1) {
-                        if (!service.atualizarStatus(apt, st, clienteParaVincular)) {
+                        if (service.atualizarStatus(apt, st, clienteParaVincular)) {
+                            alterado = true;
+                        } else {
                             System.out.println("[ERRO] Não foi possível liberar o apartamento.");
                             pausar();
                         }
@@ -696,6 +721,7 @@ public class SubMenus {
                         break;
                     }
                     apt.setValorDeVenda(novoValor);
+                    alterado = true;
                     break;
 
                 case 3:
@@ -712,6 +738,7 @@ public class SubMenus {
                         break;
                     }
                     apt.setValorSinal(novoSinal);
+                    alterado = true;
                     break;
 
                 case 0:
@@ -724,7 +751,13 @@ public class SubMenus {
             }
         } while (subOp != 0);
 
-        service.getDados().gravarArquivo();
+        if (alterado) {
+            if (gravarDados()) {
+                System.out.println("[OK] Alterações salvas com sucesso.");
+            } else {
+                System.out.println("[ERRO] Falha ao salvar alterações no arquivo.");
+            }
+        }
     }
 
     public void menuDisponibilidade(){
@@ -734,6 +767,12 @@ public class SubMenus {
 
         System.out.println("Seleciona o edificio que deseja verificar a disponibilidade");
         int idEdificio = lerInt();
+
+        if (service.buscarEdificioPorId(idEdificio) == null) {
+            System.out.println("[ERRO] Edifício não encontrado.");
+            pausar();
+            return;
+        }
 
         System.out.println("\n==== FILTRAR DISPONIBILIDADE ====");
         System.out.println("1 - Apenas DISPONÍVEIS");
@@ -1090,8 +1129,9 @@ public class SubMenus {
                     alterado = true;
                     break;
                 case 4:
-                    menuEstadoCivil(clienteMod);
-                    alterado = true;
+                    if (menuEstadoCivil(clienteMod)) {
+                        alterado = true;
+                    }
                     break;
                 case 5:
                     Conjuge novoConjuge = cadastrarConjuge();
@@ -1105,15 +1145,18 @@ public class SubMenus {
         } while(op != 0);
 
         if (alterado) {
-            service.getDados().gravarArquivo();
-            System.out.println("\n[OK] Informação atualizada com sucesso!");
+            if (gravarDados()) {
+                System.out.println("\n[OK] Informação atualizada com sucesso!");
+            } else {
+                System.out.println("\n[ERRO] Alterações feitas em memória, mas falha ao salvar no arquivo.");
+            }
         } else {
             System.out.println("\n[AVISO] Nenhuma alteração foi realizada.");
         }
         pausar();
     }
 
-    private void menuEstadoCivil(Cliente cliente){
+    private boolean menuEstadoCivil(Cliente cliente){
         System.out.println("\n========================================");
         System.out.println("         ALTERAR ESTADO CIVIL");
         System.out.println("========================================");
@@ -1131,27 +1174,36 @@ public class SubMenus {
             case 1:
                 cliente.setEstadoCivil(EstadoCivil.SOLTEIRO);
                 cliente.setConjugue(null);
-                break;
+                return true;
             case 2:
                 Conjuge c = cadastrarConjuge();
                 if (c != null) {
                     cliente.setEstadoCivil(EstadoCivil.CASADO);
                     cliente.setConjugue(c);
+                    return true;
                 }
-                break;
+                return false;
             case 3:
                 cliente.setEstadoCivil(EstadoCivil.DIVORCIADO);
                 cliente.setConjugue(null);
-                break;
+                return true;
             case 4:
                 cliente.setEstadoCivil(EstadoCivil.VIUVO);
                 cliente.setConjugue(null);
-                break;
+                return true;
             default:
                 System.out.println("Opção Inválida!!!");
                 pausar();
-                break;
+                return false;
         }
+    }
+
+    private boolean gravarDados() {
+        if (!service.salvarDados()) {
+            System.out.println("[ERRO] Falha ao salvar dados no arquivo.");
+            return false;
+        }
+        return true;
     }
 
     private void listarClientes(){
@@ -1199,6 +1251,19 @@ public class SubMenus {
             } catch (NumberFormatException e) {
                 System.out.println("[ERRO] Digite um número válido (use ponto ou vírgula para decimais).");
             }
+        }
+    }
+
+    private Double lerDoubleOpcional() {
+        String linha = scan.nextLine().trim().replace(",", ".");
+        if (linha.isEmpty()) {
+            return null;
+        }
+        try {
+            return Double.parseDouble(linha);
+        } catch (NumberFormatException e) {
+            System.out.println("[AVISO] Valor inválido. Mantendo valor atual.");
+            return null;
         }
     }
 }
